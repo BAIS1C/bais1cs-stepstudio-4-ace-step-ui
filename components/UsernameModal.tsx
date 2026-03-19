@@ -58,7 +58,7 @@ export const UsernameModal: React.FC<UsernameModalProps> = ({ isOpen, onSubmit }
 
           {/* Title */}
           <h2 className="text-2xl font-bold text-center text-white mb-2 font-display tracking-wide">
-            Welcome to ACE-Step UI
+            Welcome to Strands Sounds
           </h2>
           <p className="text-zinc-400 text-center mb-8">
             Enter your name to get started creating AI music

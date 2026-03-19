@@ -7,6 +7,25 @@ import { SongDropdownMenu } from './SongDropdownMenu';
 import { ShareModal } from './ShareModal';
 import { AlbumCover } from './AlbumCover';
 
+/** Fallback clipboard copy for non-secure contexts (http://localhost) */
+function fallbackCopyText(text: string) {
+    const textarea = document.createElement('textarea');
+    textarea.value = text;
+    textarea.style.position = 'fixed';
+    textarea.style.left = '-9999px';
+    textarea.style.top = '-9999px';
+    textarea.style.opacity = '0';
+    document.body.appendChild(textarea);
+    textarea.focus();
+    textarea.select();
+    try {
+        document.execCommand('copy');
+    } catch (e) {
+        console.error('Fallback copy failed:', e);
+    }
+    document.body.removeChild(textarea);
+}
+
 interface RightSidebarProps {
     song: Song | null;
     onClose?: () => void;
@@ -358,10 +377,23 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({ song, onClose, onOpe
                                     e.stopPropagation();
                                     const allTags = song.tags && song.tags.length > 0
                                         ? song.tags.join(', ')
-                                        : song.style;
-                                    navigator.clipboard.writeText(allTags);
-                                    setCopiedStyle(true);
-                                    setTimeout(() => setCopiedStyle(false), 2000);
+                                        : (song.style || '');
+                                    if (!allTags) return;
+                                    // Clipboard API with fallback for http://localhost
+                                    if (navigator.clipboard && window.isSecureContext) {
+                                        navigator.clipboard.writeText(allTags).then(() => {
+                                            setCopiedStyle(true);
+                                            setTimeout(() => setCopiedStyle(false), 2000);
+                                        }).catch(() => {
+                                            fallbackCopyText(allTags);
+                                            setCopiedStyle(true);
+                                            setTimeout(() => setCopiedStyle(false), 2000);
+                                        });
+                                    } else {
+                                        fallbackCopyText(allTags);
+                                        setCopiedStyle(true);
+                                        setTimeout(() => setCopiedStyle(false), 2000);
+                                    }
                                 }}
                                 className={`flex items-center gap-1 text-[10px] font-medium transition-colors ${copiedStyle ? 'text-green-500' : 'text-zinc-500 hover:text-black dark:hover:text-white'}`}
                                 title="Copy all tags"
@@ -400,8 +432,18 @@ export const RightSidebar: React.FC<RightSidebarProps> = ({ song, onClose, onOpe
                             <h3 className="text-xs font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">Lyrics</h3>
                             <button
                                 onClick={() => {
-                                    if (song.lyrics) {
-                                        navigator.clipboard.writeText(song.lyrics);
+                                    if (!song.lyrics) return;
+                                    if (navigator.clipboard && window.isSecureContext) {
+                                        navigator.clipboard.writeText(song.lyrics).then(() => {
+                                            setCopiedLyrics(true);
+                                            setTimeout(() => setCopiedLyrics(false), 2000);
+                                        }).catch(() => {
+                                            fallbackCopyText(song.lyrics);
+                                            setCopiedLyrics(true);
+                                            setTimeout(() => setCopiedLyrics(false), 2000);
+                                        });
+                                    } else {
+                                        fallbackCopyText(song.lyrics);
                                         setCopiedLyrics(true);
                                         setTimeout(() => setCopiedLyrics(false), 2000);
                                     }

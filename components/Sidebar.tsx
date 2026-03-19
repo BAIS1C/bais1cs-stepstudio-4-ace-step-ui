@@ -25,17 +25,13 @@ export const Sidebar: React.FC<SidebarProps> = ({
 }) => {
   return (
     <div className="flex flex-col h-full bg-white dark:bg-suno-sidebar border-r border-zinc-200 dark:border-white/5 flex-shrink-0 w-[72px] items-center py-4 z-30 transition-colors duration-300 overflow-y-auto scrollbar-hide">
-      {/* Logo */}
+      {/* Strands Logo */}
       <div
-        className="w-10 h-10 rounded-full bg-gradient-to-br from-accent-500 to-purple-600 flex items-center justify-center mb-8 cursor-pointer shadow-lg hover:scale-105 transition-transform"
+        className="w-11 h-11 rounded-xl flex items-center justify-center mb-6 cursor-pointer hover:scale-105 transition-transform overflow-hidden"
         onClick={() => onNavigate('create')}
-        title="ACE-Step UI"
+        title="Strands Sounds Creator"
       >
-        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-5 h-5 text-white">
-          <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-          <path d="M2 17L12 22L22 17" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-          <path d="M2 12L12 17L22 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-        </svg>
+        <img src="/strands-logo.svg" alt="Strands" className="w-10 h-10 object-contain" />
       </div>
 
       <nav className="flex-1 flex flex-col gap-4 w-full px-3">

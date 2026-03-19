@@ -135,7 +135,8 @@ export const CreatePanel: React.FC<CreatePanelProps> = ({ onGenerate, isGenerati
   const [inferMethod, setInferMethod] = useState<'ode' | 'sde'>('ode');
   const [shift, setShift] = useState(3.0);
 
-  // LM Parameters (under Expert)
+  // LM Parameters (under Expert) — UI hidden but state + API submission intact.
+  // TODO: [STRANDS-LM] Unhide UI controls when internal LLM is hooked up.
   const [showLmParams, setShowLmParams] = useState(false);
   const [lmTemperature, setLmTemperature] = useState(0.85);
   const [lmCfgScale, setLmCfgScale] = useState(2.0);
@@ -308,7 +309,9 @@ export const CreatePanel: React.FC<CreatePanelProps> = ({ onGenerate, isGenerati
     e.target.value = '';
   };
 
-  // Format handler - uses LLM to enhance style and auto-fill parameters
+  // TODO: [STRANDS-LM] Format handler — uses LLM to enhance style and auto-fill parameters.
+  // Currently unreachable (AI Format buttons hidden). Re-expose when internal LLM endpoint is available.
+  // This function is intact and working — it calls /api/generate/format on the bridge.
   const handleFormat = async () => {
     if (!token || !style.trim()) return;
     setIsFormatting(true);
@@ -617,14 +620,17 @@ export const CreatePanel: React.FC<CreatePanelProps> = ({ onGenerate, isGenerati
           onLoadedMetadata={(e) => setSourceDuration(e.currentTarget.duration || 0)}
         />
 
-        {/* Header - Mode Toggle */}
-        <div className="flex items-center justify-between">
+        {/* Header - Branding + Mode Toggle */}
+        <div className="flex flex-col gap-3">
           <div className="flex items-center gap-2">
-            <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
-            <span className="text-xs font-medium text-zinc-500 dark:text-zinc-400 font-display tracking-wider">ACE-Step v1.5</span>
+            <img src="/strands-logo.svg" alt="Strands" className="w-5 h-5" />
+            <span className="text-sm font-display font-bold tracking-wider text-zinc-900 dark:text-white">STRANDS SOUNDS</span>
+            <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse ml-auto"></div>
           </div>
 
-          <div className="flex items-center bg-zinc-200 dark:bg-black/40 rounded-lg p-1 border border-zinc-300 dark:border-white/5">
+          <div className="flex items-center justify-between">
+            <span className="text-[10px] text-zinc-400 dark:text-zinc-500 tracking-wide">powered by ACeStep 1.5</span>
+            <div className="flex items-center bg-zinc-200 dark:bg-black/40 rounded-lg p-1 border border-zinc-300 dark:border-white/5">
             <button
               onClick={() => setCustomMode(false)}
               className={`px-3 py-1.5 rounded-md text-xs font-semibold transition-all ${!customMode ? 'bg-white dark:bg-zinc-800 text-black dark:text-white shadow-sm' : 'text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-300'}`}
@@ -637,6 +643,7 @@ export const CreatePanel: React.FC<CreatePanelProps> = ({ onGenerate, isGenerati
             >
               Custom
             </button>
+          </div>
           </div>
         </div>
 
@@ -970,14 +977,12 @@ export const CreatePanel: React.FC<CreatePanelProps> = ({ onGenerate, isGenerati
                   >
                     {instrumental ? 'Instrumental' : 'Vocal'}
                   </button>
-                  <button
-                    className={`p-1.5 hover:bg-zinc-200 dark:hover:bg-white/10 rounded transition-colors ${isFormatting ? 'text-accent-500 animate-pulse' : 'text-zinc-500 hover:text-black dark:hover:text-white'}`}
-                    title="AI Format - Enhance style & auto-fill parameters"
-                    onClick={handleFormat}
-                    disabled={isFormatting || !style.trim()}
-                  >
-                    <Sparkles size={14} />
-                  </button>
+                  {/* TODO: [STRANDS-LM] Re-enable AI Format button when internal LLM is available.
+                      This calls handleFormat() which hits /api/generate/format to enhance style + auto-fill params.
+                      <button className="..." title="AI Format" onClick={handleFormat} disabled={isFormatting || !style.trim()}>
+                        <Sparkles size={14} />
+                      </button>
+                  */}
                   <button
                     className="p-1.5 hover:bg-zinc-200 dark:hover:bg-white/10 rounded text-zinc-500 hover:text-black dark:hover:text-white transition-colors"
                     onClick={() => setLyrics('')}
@@ -1010,14 +1015,10 @@ export const CreatePanel: React.FC<CreatePanelProps> = ({ onGenerate, isGenerati
                   <span className="text-xs font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-wide">Style of Music</span>
                   <p className="text-[11px] text-zinc-400 dark:text-zinc-500 mt-0.5">Genre, mood, instruments, vibe</p>
                 </div>
-                <button
-                  className={`p-1.5 hover:bg-zinc-200 dark:hover:bg-white/10 rounded transition-colors ${isFormatting ? 'text-accent-500 animate-pulse' : 'text-zinc-500 hover:text-black dark:hover:text-white'}`}
-                  title="AI Format - Enhance style & auto-fill parameters"
-                  onClick={handleFormat}
-                  disabled={isFormatting || !style.trim()}
-                >
-                  <Sparkles size={14} />
-                </button>
+                {/* TODO: [STRANDS-LM] Re-enable AI Format button on Style input when internal LLM is available.
+                    Same handleFormat() as lyrics — enhances style tags via LLM.
+                    <button className="..." title="AI Format" onClick={handleFormat}><Sparkles size={14} /></button>
+                */}
               </div>
               <textarea
                 value={style}
@@ -1364,106 +1365,12 @@ export const CreatePanel: React.FC<CreatePanelProps> = ({ onGenerate, isGenerati
               <div className="text-[11px] text-rose-500">{uploadError}</div>
             )}
 
-            {/* LM Parameters */}
-            <button
-              onClick={() => setShowLmParams(!showLmParams)}
-              className="w-full flex items-center justify-between px-4 py-3 bg-white/60 dark:bg-black/20 rounded-xl border border-zinc-200/70 dark:border-white/10 text-sm font-medium text-zinc-700 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-white/5 transition-colors"
-            >
-              <div className="flex items-center gap-2">
-                <Music2 size={16} className="text-zinc-500" />
-                <div className="flex flex-col items-start">
-                  <span>LM Parameters</span>
-                  <span className="text-[11px] text-zinc-400 dark:text-zinc-500 font-normal">Control lyric generation + creativity</span>
-                </div>
-              </div>
-              <ChevronDown size={16} className={`text-zinc-500 transition-transform ${showLmParams ? 'rotate-180' : ''}`} />
-            </button>
-
-            {showLmParams && (
-              <div className="bg-white dark:bg-suno-card rounded-xl border border-zinc-200 dark:border-white/5 p-4 space-y-4">
-                {/* LM Temperature */}
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <label className="text-xs font-medium text-zinc-600 dark:text-zinc-400">LM Temperature</label>
-                    <span className="text-xs font-mono text-zinc-900 dark:text-white bg-zinc-100 dark:bg-black/20 px-2 py-0.5 rounded">{lmTemperature.toFixed(2)}</span>
-                  </div>
-                  <input
-                    type="range"
-                    min="0"
-                    max="2"
-                    step="0.05"
-                    value={lmTemperature}
-                    onChange={(e) => setLmTemperature(Number(e.target.value))}
-                    className="w-full h-2 bg-zinc-200 dark:bg-zinc-700 rounded-lg appearance-none cursor-pointer accent-accent-500"
-                  />
-                  <p className="text-[10px] text-zinc-500">Higher = more random (0-2)</p>
-                </div>
-
-                {/* LM CFG Scale */}
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <label className="text-xs font-medium text-zinc-600 dark:text-zinc-400">LM CFG Scale</label>
-                    <span className="text-xs font-mono text-zinc-900 dark:text-white bg-zinc-100 dark:bg-black/20 px-2 py-0.5 rounded">{lmCfgScale.toFixed(1)}</span>
-                  </div>
-                  <input
-                    type="range"
-                    min="1"
-                    max="3"
-                    step="0.1"
-                    value={lmCfgScale}
-                    onChange={(e) => setLmCfgScale(Number(e.target.value))}
-                    className="w-full h-2 bg-zinc-200 dark:bg-zinc-700 rounded-lg appearance-none cursor-pointer accent-accent-500"
-                  />
-                  <p className="text-[10px] text-zinc-500">1.0 = no CFG (1-3)</p>
-                </div>
-
-                {/* LM Top-K & Top-P */}
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="space-y-2">
-                    <div className="flex items-center justify-between">
-                      <label className="text-xs font-medium text-zinc-600 dark:text-zinc-400">Top-K</label>
-                      <span className="text-xs font-mono text-zinc-900 dark:text-white bg-zinc-100 dark:bg-black/20 px-2 py-0.5 rounded">{lmTopK}</span>
-                    </div>
-                    <input
-                      type="range"
-                      min="0"
-                      max="100"
-                      step="1"
-                      value={lmTopK}
-                      onChange={(e) => setLmTopK(Number(e.target.value))}
-                      className="w-full h-2 bg-zinc-200 dark:bg-zinc-700 rounded-lg appearance-none cursor-pointer accent-accent-500"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <div className="flex items-center justify-between">
-                      <label className="text-xs font-medium text-zinc-600 dark:text-zinc-400">Top-P</label>
-                      <span className="text-xs font-mono text-zinc-900 dark:text-white bg-zinc-100 dark:bg-black/20 px-2 py-0.5 rounded">{lmTopP.toFixed(2)}</span>
-                    </div>
-                    <input
-                      type="range"
-                      min="0"
-                      max="1"
-                      step="0.01"
-                      value={lmTopP}
-                      onChange={(e) => setLmTopP(Number(e.target.value))}
-                      className="w-full h-2 bg-zinc-200 dark:bg-zinc-700 rounded-lg appearance-none cursor-pointer accent-accent-500"
-                    />
-                  </div>
-                </div>
-
-                {/* LM Negative Prompt */}
-                <div className="space-y-1.5">
-                  <label className="text-xs font-medium text-zinc-600 dark:text-zinc-400">LM Negative Prompt</label>
-                  <textarea
-                    value={lmNegativePrompt}
-                    onChange={(e) => setLmNegativePrompt(e.target.value)}
-                    placeholder="Things to avoid..."
-                    className="w-full h-16 bg-zinc-50 dark:bg-black/20 border border-zinc-200 dark:border-white/10 rounded-lg p-2 text-xs text-zinc-900 dark:text-white focus:outline-none resize-none"
-                  />
-                  <p className="text-[10px] text-zinc-500">Use when LM CFG Scale {">"} 1.0</p>
-                </div>
-              </div>
-            )}
+            {/* TODO: [STRANDS-LM] Re-enable LM Parameters section when internal LLM is hooked up.
+                These controls (Temperature, CFG Scale, Top-K, Top-P, Negative Prompt) are functional
+                but require an LM endpoint that we don't expose yet. The state variables and API submission
+                logic remain intact — just unhide this block when ready.
+                See: lmTemperature, lmCfgScale, lmTopK, lmTopP, lmNegativePrompt state vars above.
+                The bridge (acestep.ts) already forwards these params to the ACE-Step API. */}
 
             <div className="space-y-1">
               <h4 className="text-xs font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-wide">Transform</h4>
@@ -1592,16 +1499,8 @@ export const CreatePanel: React.FC<CreatePanelProps> = ({ onGenerate, isGenerati
                   className="w-full bg-zinc-50 dark:bg-black/20 border border-zinc-200 dark:border-white/10 rounded-lg px-3 py-2 text-xs text-zinc-900 dark:text-white focus:outline-none"
                 />
               </div>
-              <div className="space-y-1.5">
-                <label className="text-xs font-medium text-zinc-600 dark:text-zinc-400">LM Batch Chunk Size</label>
-                <input
-                  type="number"
-                  min="1"
-                  value={lmBatchChunkSize}
-                  onChange={(e) => setLmBatchChunkSize(Number(e.target.value))}
-                  className="w-full bg-zinc-50 dark:bg-black/20 border border-zinc-200 dark:border-white/10 rounded-lg px-3 py-2 text-xs text-zinc-900 dark:text-white focus:outline-none"
-                />
-              </div>
+              {/* TODO: [STRANDS-LM] Re-enable LM Batch Chunk Size when internal LLM is hooked up.
+                  State var: lmBatchChunkSize — already forwarded in submission payload. */}
             </div>
 
             <div className="space-y-1.5">
@@ -1631,10 +1530,8 @@ export const CreatePanel: React.FC<CreatePanelProps> = ({ onGenerate, isGenerati
                 <input type="checkbox" checked={useAdg} onChange={() => setUseAdg(!useAdg)} />
                 Use ADG
               </label>
-              <label className="flex items-center gap-2 text-xs font-medium text-zinc-600 dark:text-zinc-400">
-                <input type="checkbox" checked={allowLmBatch} onChange={() => setAllowLmBatch(!allowLmBatch)} />
-                Allow LM Batch
-              </label>
+              {/* TODO: [STRANDS-LM] Re-enable Allow LM Batch checkbox when internal LLM is available.
+                  State var: allowLmBatch — already forwarded in submission payload. */}
               <label className="flex items-center gap-2 text-xs font-medium text-zinc-600 dark:text-zinc-400">
                 <input type="checkbox" checked={useCotMetas} onChange={() => setUseCotMetas(!useCotMetas)} />
                 Use CoT Metas

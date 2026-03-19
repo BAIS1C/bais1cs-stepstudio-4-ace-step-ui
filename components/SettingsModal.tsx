@@ -139,9 +139,9 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, t
                         </div>
                         <div className="pl-7 space-y-3 text-sm text-zinc-600 dark:text-zinc-400">
                             <p>Version 1.0.0</p>
-                            <p>ACE-Step UI - Local AI Music Generator</p>
+                            <p className="font-display tracking-wide">Strands Sounds Creator</p>
                             <p className="text-xs text-zinc-400 dark:text-zinc-500 mt-2">
-                                Powered by ACE-Step 1.5. Open source and free to use.
+                                Powered by ACeStep 1.5. A StrandsNation product.
                             </p>
                             <div className="pt-3 border-t border-zinc-200 dark:border-zinc-700/50 mt-4">
                                 <p className="text-zinc-900 dark:text-white font-medium mb-3">Created by Ambsd</p>

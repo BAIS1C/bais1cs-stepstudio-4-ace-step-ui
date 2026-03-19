@@ -133,11 +133,18 @@ async function submitToApi(params: GenerationParams): Promise<{ taskId: string }
     vocal_language: params.vocalLanguage || 'en',
     use_random_seed: params.randomSeed !== false,
     shift: params.shift ?? 3.0,
-    thinking: params.thinking ?? false, // Respect frontend choice, default false for GPU compatibility
-    use_cot_caption: false, // Explicitly disable CoT features that require LLM
-    use_cot_language: false, // Explicitly disable CoT features that require LLM
-    use_cot_metas: false, // Explicitly disable CoT features that require LLM
+    thinking: params.thinking ?? false,
+    // CoT defaults: enabled when thinking, off otherwise — let backend decide via LLM availability
+    use_cot_caption: params.thinking ? (params.useCotCaption ?? true) : false,
+    use_cot_language: params.thinking ? (params.useCotLanguage ?? true) : false,
+    use_cot_metas: params.thinking ? (params.useCotMetas ?? true) : false,
   };
+
+  // Inference method (ode/sde) — previously dropped, now forwarded
+  if (params.inferMethod) body.infer_method = params.inferMethod;
+
+  // Custom timesteps — previously dropped, now forwarded
+  if (params.customTimesteps) body.timesteps = params.customTimesteps;
 
   if (params.bpm && params.bpm > 0) body.bpm = params.bpm;
   if (params.keyScale) body.key_scale = params.keyScale;
@@ -152,19 +159,31 @@ async function submitToApi(params: GenerationParams): Promise<{ taskId: string }
   if (params.repaintingEnd !== undefined && params.repaintingEnd > 0) body.repainting_end = params.repaintingEnd;
   if (params.audioCoverStrength !== undefined && params.audioCoverStrength !== 1.0) body.audio_cover_strength = params.audioCoverStrength;
   if (params.instruction) body.instruction = params.instruction;
-  // LLM and CoT parameters only sent when thinking mode is enabled
+  // LLM parameters sent when thinking mode is enabled
   if (params.thinking) {
     if (params.lmTemperature !== undefined) body.lm_temperature = params.lmTemperature;
     if (params.lmCfgScale !== undefined) body.lm_cfg_scale = params.lmCfgScale;
     if (params.lmTopK !== undefined && params.lmTopK > 0) body.lm_top_k = params.lmTopK;
     if (params.lmTopP !== undefined) body.lm_top_p = params.lmTopP;
-    if (params.useCotCaption !== undefined) body.use_cot_caption = params.useCotCaption;
-    if (params.useCotLanguage !== undefined) body.use_cot_language = params.useCotLanguage;
-    if (params.useCotMetas !== undefined) body.use_cot_metas = params.useCotMetas;
+    if (params.lmNegativePrompt) body.lm_negative_prompt = params.lmNegativePrompt;
+    // Constrained decoding debug — previously dropped
+    if (params.constrainedDecodingDebug) body.constrained_decoding_debug = true;
+    // LM batch chunk size — previously dropped
+    if (params.lmBatchChunkSize !== undefined) body.lm_batch_chunk_size = params.lmBatchChunkSize;
+    // Allow LM batch — previously dropped
+    if (params.allowLmBatch !== undefined) body.allow_lm_batch = params.allowLmBatch;
   }
   if (params.useAdg) body.use_adg = true;
   if (params.cfgIntervalStart !== undefined && params.cfgIntervalStart > 0) body.cfg_interval_start = params.cfgIntervalStart;
   if (params.cfgIntervalEnd !== undefined && params.cfgIntervalEnd < 1.0) body.cfg_interval_end = params.cfgIntervalEnd;
+
+  // Score/LRC params — previously dropped
+  if (params.getScores) body.get_scores = true;
+  if (params.getLrc) body.get_lrc = true;
+  if (params.scoreScale !== undefined) body.score_scale = params.scoreScale;
+
+  // Format caption flag
+  if (params.isFormatCaption) body.is_format_caption = true;
 
   // Handle reference audio - need to pass file path
   if (params.referenceAudioUrl) {
