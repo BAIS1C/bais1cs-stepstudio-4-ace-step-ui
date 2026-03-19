@@ -13,7 +13,7 @@
     <meta name="author" content="ACE-Step UI" />
 
     <!-- Additional SEO -->
-    <meta name="theme-color" content="#ec4899" />
+    <meta name="theme-color" content="#00C2FF" />
     <meta name="application-name" content="ACE-Step UI" />
     <meta name="apple-mobile-web-app-title" content="ACE-Step UI" />
 
@@ -28,19 +28,41 @@
           extend: {
             colors: {
               suno: {
-                DEFAULT: '#09090b',
-                sidebar: '#000000',
-                panel: '#121214',
-                card: '#18181b',
-                hover: '#27272a',
+                DEFAULT: '#0A0B0D',
+                sidebar: '#060709',
+                panel: '#14151C',
+                card: '#1a1b23',
+                hover: '#1e2030',
                 border: '#27272a',
+              },
+              accent: {
+                DEFAULT: '#00C2FF',
+                50: '#e6f9ff',
+                100: '#b3efff',
+                200: '#80e4ff',
+                300: '#4dd9ff',
+                400: '#1aceff',
+                500: '#00C2FF',
+                600: '#009bcc',
+                700: '#007599',
+                800: '#004e66',
+                900: '#002833',
+              },
+              strands: {
+                pink: '#F000B8',
+                yellow: '#F9E100',
+                purple: '#8b5cf6',
+                red: '#FF4444',
+                green: '#22c55e',
               }
             },
             fontFamily: {
-              sans: ['Inter', 'sans-serif'],
+              display: ['Orbitron', 'sans-serif'],
+              sans: ['Rajdhani', 'Exo 2', 'sans-serif'],
             },
             animation: {
               'gradient-x': 'gradient-x 15s ease infinite',
+              'pulse-glow': 'pulseGlow 3s ease-in-out infinite',
             },
             keyframes: {
               'gradient-x': {
@@ -53,43 +75,72 @@
                   'background-position': 'right center'
                 },
               },
+              'pulseGlow': {
+                '0%, 100%': { opacity: '0.3' },
+                '50%': { opacity: '0.7' },
+              },
             }
           }
         }
       }
     </script>
     <style>
-      @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+      @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;400;500;600;700&display=swap');
 
       :root {
         --breakpoint-mobile: 768px;
+        --c-accent: #00C2FF;
+        --c-pink: #F000B8;
+        --c-yellow: #F9E100;
+        --c-purple: #8b5cf6;
+        --c-bg: #0A0B0D;
+        --c-surface: rgba(20, 21, 28, 0.85);
+        --c-text: #E2E8F0;
+        --c-sub: #A0AEC0;
+        --c-border: rgba(255, 255, 255, 0.06);
+        --c-glass: rgba(255, 255, 255, 0.08);
       }
 
       body {
-        font-family: 'Inter', sans-serif;
+        font-family: 'Rajdhani', 'Exo 2', sans-serif;
+      }
+
+      h1, h2, h3, h4, h5, h6, .font-display {
+        font-family: 'Orbitron', sans-serif;
       }
 
       ::-webkit-scrollbar {
-        width: 6px;
-        height: 6px;
+        width: 5px;
+        height: 5px;
       }
       ::-webkit-scrollbar-track {
         background: transparent;
       }
       ::-webkit-scrollbar-thumb {
-        background: #d4d4d8;
+        background: rgba(0, 194, 255, 0.2);
         border-radius: 3px;
       }
       ::-webkit-scrollbar-thumb:hover {
-        background: #a1a1aa;
+        background: rgba(0, 194, 255, 0.4);
       }
 
       /* Dark mode scrollbar */
       .dark ::-webkit-scrollbar-thumb {
-        background: #3f3f46;
+        background: rgba(0, 194, 255, 0.2);
       }
       .dark ::-webkit-scrollbar-thumb:hover {
-        background: #52525b;
+        background: rgba(0, 194, 255, 0.4);
+      }
+
+      /* Firefox scrollbar */
+      * {
+        scrollbar-width: thin;
+        scrollbar-color: rgba(0, 194, 255, 0.2) transparent;
+      }
+
+      /* Selection */
+      ::selection {
+        background: rgba(0, 194, 255, 0.25);
       }
 
       /* Hide scrollbar utility */
@@ -102,7 +153,7 @@
       }
 
       .gradient-text {
-        background: linear-gradient(to right, #f472b6, #a78bfa, #60a5fa);
+        background: linear-gradient(to right, #00C2FF, #8b5cf6, #F000B8);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
       }

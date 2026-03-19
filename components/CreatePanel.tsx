@@ -621,7 +621,7 @@ export const CreatePanel: React.FC<CreatePanelProps> = ({ onGenerate, isGenerati
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
-            <span className="text-xs font-medium text-zinc-500 dark:text-zinc-400">ACE-Step v1.5</span>
+            <span className="text-xs font-medium text-zinc-500 dark:text-zinc-400 font-display tracking-wider">ACE-Step v1.5</span>
           </div>
 
           <div className="flex items-center bg-zinc-200 dark:bg-black/40 rounded-lg p-1 border border-zinc-300 dark:border-white/5">
@@ -694,7 +694,7 @@ export const CreatePanel: React.FC<CreatePanelProps> = ({ onGenerate, isGenerati
                   step="5"
                   value={duration}
                   onChange={(e) => setDuration(Number(e.target.value))}
-                  className="w-full h-2 bg-zinc-200 dark:bg-zinc-700 rounded-lg appearance-none cursor-pointer accent-pink-500"
+                  className="w-full h-2 bg-zinc-200 dark:bg-zinc-700 rounded-lg appearance-none cursor-pointer accent-accent-500"
                 />
               </div>
 
@@ -713,7 +713,7 @@ export const CreatePanel: React.FC<CreatePanelProps> = ({ onGenerate, isGenerati
                   step="5"
                   value={bpm}
                   onChange={(e) => setBpm(Number(e.target.value))}
-                  className="w-full h-2 bg-zinc-200 dark:bg-zinc-700 rounded-lg appearance-none cursor-pointer accent-pink-500"
+                  className="w-full h-2 bg-zinc-200 dark:bg-zinc-700 rounded-lg appearance-none cursor-pointer accent-accent-500"
                 />
               </div>
 
@@ -760,7 +760,7 @@ export const CreatePanel: React.FC<CreatePanelProps> = ({ onGenerate, isGenerati
                   step="1"
                   value={batchSize}
                   onChange={(e) => setBatchSize(Number(e.target.value))}
-                  className="w-full h-2 bg-zinc-200 dark:bg-zinc-700 rounded-lg appearance-none cursor-pointer accent-pink-500"
+                  className="w-full h-2 bg-zinc-200 dark:bg-zinc-700 rounded-lg appearance-none cursor-pointer accent-accent-500"
                 />
                 <p className="text-[10px] text-zinc-500">Number of song variations to generate</p>
               </div>
@@ -816,7 +816,7 @@ export const CreatePanel: React.FC<CreatePanelProps> = ({ onGenerate, isGenerati
                     <button
                       type="button"
                       onClick={() => toggleAudio('reference')}
-                      className="relative flex-shrink-0 w-10 h-10 rounded-full bg-gradient-to-br from-pink-500 to-purple-600 text-white flex items-center justify-center shadow-lg shadow-pink-500/20 hover:scale-105 transition-transform"
+                      className="relative flex-shrink-0 w-10 h-10 rounded-full bg-gradient-to-br from-accent-500 to-purple-600 text-white flex items-center justify-center shadow-lg shadow-accent-500/20 hover:scale-105 transition-transform"
                     >
                       {referencePlaying ? (
                         <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M6 4h4v16H6V4zm8 0h4v16h-4V4z"/></svg>
@@ -844,7 +844,7 @@ export const CreatePanel: React.FC<CreatePanelProps> = ({ onGenerate, isGenerati
                           }}
                         >
                           <div
-                            className="h-full bg-gradient-to-r from-pink-500 to-purple-500 rounded-full transition-all relative"
+                            className="h-full bg-gradient-to-r from-accent-500 to-purple-500 rounded-full transition-all relative"
                             style={{ width: referenceDuration ? `${Math.min(100, (referenceTime / referenceDuration) * 100)}%` : '0%' }}
                           >
                             <div className="absolute right-0 top-1/2 -translate-y-1/2 w-2.5 h-2.5 rounded-full bg-white shadow-md opacity-0 group-hover/seek:opacity-100 transition-opacity" />
@@ -964,14 +964,14 @@ export const CreatePanel: React.FC<CreatePanelProps> = ({ onGenerate, isGenerati
                     onClick={() => setInstrumental(!instrumental)}
                     className={`px-2.5 py-1 rounded-full text-[10px] font-semibold border transition-colors ${
                       instrumental
-                        ? 'bg-pink-600 text-white border-pink-500'
+                        ? 'bg-accent-600 text-white border-accent-500'
                         : 'bg-white dark:bg-suno-card border-zinc-200 dark:border-white/10 text-zinc-600 dark:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-white/10'
                     }`}
                   >
                     {instrumental ? 'Instrumental' : 'Vocal'}
                   </button>
                   <button
-                    className={`p-1.5 hover:bg-zinc-200 dark:hover:bg-white/10 rounded transition-colors ${isFormatting ? 'text-pink-500 animate-pulse' : 'text-zinc-500 hover:text-black dark:hover:text-white'}`}
+                    className={`p-1.5 hover:bg-zinc-200 dark:hover:bg-white/10 rounded transition-colors ${isFormatting ? 'text-accent-500 animate-pulse' : 'text-zinc-500 hover:text-black dark:hover:text-white'}`}
                     title="AI Format - Enhance style & auto-fill parameters"
                     onClick={handleFormat}
                     disabled={isFormatting || !style.trim()}
@@ -1011,7 +1011,7 @@ export const CreatePanel: React.FC<CreatePanelProps> = ({ onGenerate, isGenerati
                   <p className="text-[11px] text-zinc-400 dark:text-zinc-500 mt-0.5">Genre, mood, instruments, vibe</p>
                 </div>
                 <button
-                  className={`p-1.5 hover:bg-zinc-200 dark:hover:bg-white/10 rounded transition-colors ${isFormatting ? 'text-pink-500 animate-pulse' : 'text-zinc-500 hover:text-black dark:hover:text-white'}`}
+                  className={`p-1.5 hover:bg-zinc-200 dark:hover:bg-white/10 rounded transition-colors ${isFormatting ? 'text-accent-500 animate-pulse' : 'text-zinc-500 hover:text-black dark:hover:text-white'}`}
                   title="AI Format - Enhance style & auto-fill parameters"
                   onClick={handleFormat}
                   disabled={isFormatting || !style.trim()}
@@ -1065,7 +1065,7 @@ export const CreatePanel: React.FC<CreatePanelProps> = ({ onGenerate, isGenerati
               </div>
               <button
                 onClick={() => setInstrumental(!instrumental)}
-                className={`w-11 h-6 rounded-full flex items-center transition-colors duration-200 px-1 border border-zinc-200 dark:border-white/5 ${instrumental ? 'bg-pink-600' : 'bg-zinc-300 dark:bg-black/40'}`}
+                className={`w-11 h-6 rounded-full flex items-center transition-colors duration-200 px-1 border border-zinc-200 dark:border-white/5 ${instrumental ? 'bg-accent-600' : 'bg-zinc-300 dark:bg-black/40'}`}
               >
                 <div className={`w-4 h-4 rounded-full bg-white transform transition-transform duration-200 shadow-sm ${instrumental ? 'translate-x-5' : 'translate-x-0'}`} />
               </button>
@@ -1115,7 +1115,7 @@ export const CreatePanel: React.FC<CreatePanelProps> = ({ onGenerate, isGenerati
               step="5"
               value={bpm}
               onChange={(e) => setBpm(Number(e.target.value))}
-              className="w-full h-2 bg-zinc-200 dark:bg-zinc-700 rounded-lg appearance-none cursor-pointer accent-pink-500"
+              className="w-full h-2 bg-zinc-200 dark:bg-zinc-700 rounded-lg appearance-none cursor-pointer accent-accent-500"
             />
             <div className="flex justify-between text-[10px] text-zinc-500">
               <span>Auto</span>
@@ -1184,7 +1184,7 @@ export const CreatePanel: React.FC<CreatePanelProps> = ({ onGenerate, isGenerati
                 step="5"
                 value={duration}
                 onChange={(e) => setDuration(Number(e.target.value))}
-                className="w-full h-2 bg-zinc-200 dark:bg-zinc-700 rounded-lg appearance-none cursor-pointer accent-pink-500"
+                className="w-full h-2 bg-zinc-200 dark:bg-zinc-700 rounded-lg appearance-none cursor-pointer accent-accent-500"
               />
               <div className="flex justify-between text-[10px] text-zinc-500">
                 <span>Auto</span>
@@ -1205,7 +1205,7 @@ export const CreatePanel: React.FC<CreatePanelProps> = ({ onGenerate, isGenerati
                 step="1"
                 value={batchSize}
                 onChange={(e) => setBatchSize(Number(e.target.value))}
-                className="w-full h-2 bg-zinc-200 dark:bg-zinc-700 rounded-lg appearance-none cursor-pointer accent-pink-500"
+                className="w-full h-2 bg-zinc-200 dark:bg-zinc-700 rounded-lg appearance-none cursor-pointer accent-accent-500"
               />
               <p className="text-[10px] text-zinc-500">Number of song variations to generate</p>
             </div>
@@ -1225,7 +1225,7 @@ export const CreatePanel: React.FC<CreatePanelProps> = ({ onGenerate, isGenerati
                     onClick={() => setBulkCount(count)}
                     className={`flex-1 py-2 rounded-lg text-xs font-bold transition-all ${
                       bulkCount === count
-                        ? 'bg-gradient-to-r from-orange-500 to-pink-600 text-white shadow-md'
+                        ? 'bg-gradient-to-r from-accent-500 to-strands-purple text-white shadow-md'
                         : 'bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 hover:bg-zinc-200 dark:hover:bg-zinc-700'
                     }`}
                   >
@@ -1249,7 +1249,7 @@ export const CreatePanel: React.FC<CreatePanelProps> = ({ onGenerate, isGenerati
                 step="1"
                 value={inferenceSteps}
                 onChange={(e) => setInferenceSteps(Number(e.target.value))}
-                className="w-full h-2 bg-zinc-200 dark:bg-zinc-700 rounded-lg appearance-none cursor-pointer accent-pink-500"
+                className="w-full h-2 bg-zinc-200 dark:bg-zinc-700 rounded-lg appearance-none cursor-pointer accent-accent-500"
               />
               <p className="text-[10px] text-zinc-500">More steps = better quality, slower (8 recommended for turbo)</p>
             </div>
@@ -1267,7 +1267,7 @@ export const CreatePanel: React.FC<CreatePanelProps> = ({ onGenerate, isGenerati
                 step="0.5"
                 value={guidanceScale}
                 onChange={(e) => setGuidanceScale(Number(e.target.value))}
-                className="w-full h-2 bg-zinc-200 dark:bg-zinc-700 rounded-lg appearance-none cursor-pointer accent-pink-500"
+                className="w-full h-2 bg-zinc-200 dark:bg-zinc-700 rounded-lg appearance-none cursor-pointer accent-accent-500"
               />
               <p className="text-[10px] text-zinc-500">How closely to follow the prompt</p>
             </div>
@@ -1307,7 +1307,7 @@ export const CreatePanel: React.FC<CreatePanelProps> = ({ onGenerate, isGenerati
                 </div>
                 <button
                   onClick={() => setRandomSeed(!randomSeed)}
-                  className={`w-10 h-5 rounded-full flex items-center transition-colors duration-200 px-0.5 border border-zinc-200 dark:border-white/5 ${randomSeed ? 'bg-pink-600' : 'bg-zinc-300 dark:bg-black/40'}`}
+                  className={`w-10 h-5 rounded-full flex items-center transition-colors duration-200 px-0.5 border border-zinc-200 dark:border-white/5 ${randomSeed ? 'bg-accent-600' : 'bg-zinc-300 dark:bg-black/40'}`}
                 >
                   <div className={`w-4 h-4 rounded-full bg-white transform transition-transform duration-200 shadow-sm ${randomSeed ? 'translate-x-5' : 'translate-x-0'}`} />
                 </button>
@@ -1331,7 +1331,7 @@ export const CreatePanel: React.FC<CreatePanelProps> = ({ onGenerate, isGenerati
               <span className="text-xs font-medium text-zinc-600 dark:text-zinc-400">Thinking (CoT)</span>
               <button
                 onClick={() => setThinking(!thinking)}
-                className={`w-10 h-5 rounded-full flex items-center transition-colors duration-200 px-0.5 border border-zinc-200 dark:border-white/5 ${thinking ? 'bg-pink-600' : 'bg-zinc-300 dark:bg-black/40'}`}
+                className={`w-10 h-5 rounded-full flex items-center transition-colors duration-200 px-0.5 border border-zinc-200 dark:border-white/5 ${thinking ? 'bg-accent-600' : 'bg-zinc-300 dark:bg-black/40'}`}
               >
                 <div className={`w-4 h-4 rounded-full bg-white transform transition-transform duration-200 shadow-sm ${thinking ? 'translate-x-5' : 'translate-x-0'}`} />
               </button>
@@ -1350,7 +1350,7 @@ export const CreatePanel: React.FC<CreatePanelProps> = ({ onGenerate, isGenerati
                 step="0.1"
                 value={shift}
                 onChange={(e) => setShift(Number(e.target.value))}
-                className="w-full h-2 bg-zinc-200 dark:bg-zinc-700 rounded-lg appearance-none cursor-pointer accent-pink-500"
+                className="w-full h-2 bg-zinc-200 dark:bg-zinc-700 rounded-lg appearance-none cursor-pointer accent-accent-500"
               />
               <p className="text-[10px] text-zinc-500">Timestep shift for base models (not effective for turbo)</p>
             </div>
@@ -1394,7 +1394,7 @@ export const CreatePanel: React.FC<CreatePanelProps> = ({ onGenerate, isGenerati
                     step="0.05"
                     value={lmTemperature}
                     onChange={(e) => setLmTemperature(Number(e.target.value))}
-                    className="w-full h-2 bg-zinc-200 dark:bg-zinc-700 rounded-lg appearance-none cursor-pointer accent-pink-500"
+                    className="w-full h-2 bg-zinc-200 dark:bg-zinc-700 rounded-lg appearance-none cursor-pointer accent-accent-500"
                   />
                   <p className="text-[10px] text-zinc-500">Higher = more random (0-2)</p>
                 </div>
@@ -1412,7 +1412,7 @@ export const CreatePanel: React.FC<CreatePanelProps> = ({ onGenerate, isGenerati
                     step="0.1"
                     value={lmCfgScale}
                     onChange={(e) => setLmCfgScale(Number(e.target.value))}
-                    className="w-full h-2 bg-zinc-200 dark:bg-zinc-700 rounded-lg appearance-none cursor-pointer accent-pink-500"
+                    className="w-full h-2 bg-zinc-200 dark:bg-zinc-700 rounded-lg appearance-none cursor-pointer accent-accent-500"
                   />
                   <p className="text-[10px] text-zinc-500">1.0 = no CFG (1-3)</p>
                 </div>
@@ -1431,7 +1431,7 @@ export const CreatePanel: React.FC<CreatePanelProps> = ({ onGenerate, isGenerati
                       step="1"
                       value={lmTopK}
                       onChange={(e) => setLmTopK(Number(e.target.value))}
-                      className="w-full h-2 bg-zinc-200 dark:bg-zinc-700 rounded-lg appearance-none cursor-pointer accent-pink-500"
+                      className="w-full h-2 bg-zinc-200 dark:bg-zinc-700 rounded-lg appearance-none cursor-pointer accent-accent-500"
                     />
                   </div>
                   <div className="space-y-2">
@@ -1446,7 +1446,7 @@ export const CreatePanel: React.FC<CreatePanelProps> = ({ onGenerate, isGenerati
                       step="0.01"
                       value={lmTopP}
                       onChange={(e) => setLmTopP(Number(e.target.value))}
-                      className="w-full h-2 bg-zinc-200 dark:bg-zinc-700 rounded-lg appearance-none cursor-pointer accent-pink-500"
+                      className="w-full h-2 bg-zinc-200 dark:bg-zinc-700 rounded-lg appearance-none cursor-pointer accent-accent-500"
                     />
                   </div>
                 </div>
@@ -1811,7 +1811,7 @@ export const CreatePanel: React.FC<CreatePanelProps> = ({ onGenerate, isGenerati
                                 }}
                               >
                                 <div
-                                  className="h-full bg-gradient-to-r from-pink-500 to-purple-500 rounded-full relative"
+                                  className="h-full bg-gradient-to-r from-accent-500 to-purple-500 rounded-full relative"
                                   style={{ width: modalTrackDuration > 0 ? `${(modalTrackTime / modalTrackDuration) * 100}%` : '0%' }}
                                 >
                                   <div className="absolute right-0 top-1/2 -translate-y-1/2 w-2.5 h-2.5 rounded-full bg-white shadow-md opacity-0 group-hover/seek:opacity-100 transition-opacity" />
@@ -1891,7 +1891,7 @@ export const CreatePanel: React.FC<CreatePanelProps> = ({ onGenerate, isGenerati
       <div className="p-4 mt-auto sticky bottom-0 bg-zinc-50/95 dark:bg-suno-panel/95 backdrop-blur-sm z-10 border-t border-zinc-200 dark:border-white/5 space-y-3">
         <button
           onClick={handleGenerate}
-          className="w-full h-12 rounded-xl font-bold text-base flex items-center justify-center gap-2 transition-all transform active:scale-[0.98] bg-gradient-to-r from-orange-500 to-pink-600 text-white shadow-lg hover:brightness-110"
+          className="w-full h-12 rounded-xl font-bold font-display text-base tracking-wide flex items-center justify-center gap-2 transition-all transform active:scale-[0.98] bg-gradient-to-r from-accent-500 to-strands-purple text-white shadow-lg shadow-accent-500/25 hover:brightness-110"
         >
           <Sparkles size={18} />
           <span>

@@ -164,7 +164,7 @@ export const SongList: React.FC<SongListProps> = ({
                                             <div className={`
                                      w-4 h-4 rounded border flex items-center justify-center transition-all
                                      ${activeFilters.has(filter.id)
-                                                    ? 'bg-pink-600 border-pink-600'
+                                                    ? 'bg-accent-600 border-accent-600'
                                                     : 'border-zinc-300 dark:border-zinc-600 group-hover:border-zinc-400 dark:group-hover:border-zinc-500'
                                                 }
                                  `}>
@@ -188,7 +188,7 @@ export const SongList: React.FC<SongListProps> = ({
                             <p className="font-medium">No songs match your filters.</p>
                             <button
                                 onClick={() => { setActiveFilters(new Set()); setSearchQuery(''); }}
-                                className="text-pink-600 dark:text-pink-500 text-sm font-bold hover:underline"
+                                className="text-accent-600 dark:text-accent-500 text-sm font-bold hover:underline"
                             >
                                 Clear filters
                             </button>
@@ -294,10 +294,10 @@ const SongItem: React.FC<SongItemProps> = ({
                         ) : (
                             /* Generating - Music Waveform Animation */
                             <div className="flex items-end gap-1 h-6">
-                                <div className="w-1 bg-pink-500 rounded-full music-bar-anim" style={{ animationDelay: '0.0s' }}></div>
-                                <div className="w-1 bg-pink-500 rounded-full music-bar-anim" style={{ animationDelay: '0.2s' }}></div>
-                                <div className="w-1 bg-pink-500 rounded-full music-bar-anim" style={{ animationDelay: '0.4s' }}></div>
-                                <div className="w-1 bg-pink-500 rounded-full music-bar-anim" style={{ animationDelay: '0.1s' }}></div>
+                                <div className="w-1 bg-accent-500 rounded-full music-bar-anim" style={{ animationDelay: '0.0s' }}></div>
+                                <div className="w-1 bg-accent-500 rounded-full music-bar-anim" style={{ animationDelay: '0.2s' }}></div>
+                                <div className="w-1 bg-accent-500 rounded-full music-bar-anim" style={{ animationDelay: '0.4s' }}></div>
+                                <div className="w-1 bg-accent-500 rounded-full music-bar-anim" style={{ animationDelay: '0.1s' }}></div>
                             </div>
                         )}
                     </div>
@@ -324,10 +324,10 @@ const SongItem: React.FC<SongItemProps> = ({
             <div className="flex-1 min-w-0 flex flex-col justify-between py-1">
                 <div className="space-y-1">
                     <div className="flex items-center gap-2">
-                        <h3 className={`font-bold text-lg truncate ${isCurrent ? 'text-pink-600 dark:text-pink-500' : 'text-zinc-900 dark:text-white'}`}>
+                        <h3 className={`font-bold text-lg truncate ${isCurrent ? 'text-accent-600 dark:text-accent-500' : 'text-zinc-900 dark:text-white'}`}>
                             {song.title || (song.isGenerating ? (song.queuePosition ? "Queued..." : "Creating...") : "Untitled")}
                         </h3>
-                        <span className="inline-flex items-center justify-center text-[9px] font-bold text-white bg-gradient-to-r from-pink-500 to-purple-500 px-1.5 py-0.5 rounded-sm shadow-sm">
+                        <span className="inline-flex items-center justify-center text-[9px] font-bold text-white bg-gradient-to-r from-accent-500 to-purple-500 px-1.5 py-0.5 rounded-sm shadow-sm">
                             v1.5
                         </span>
                         {song.isPublic === false && (
@@ -361,7 +361,7 @@ const SongItem: React.FC<SongItemProps> = ({
                 {!song.isGenerating && (
                     <div className="flex items-center gap-1 pt-2">
                         <button
-                            className={`flex items-center gap-1 px-3 py-1.5 rounded-full hover:bg-white/5 transition-colors ${isLiked ? 'text-pink-600 dark:text-pink-500 bg-pink-100 dark:bg-pink-500/10' : 'text-zinc-400 hover:text-black dark:hover:text-white'}`}
+                            className={`flex items-center gap-1 px-3 py-1.5 rounded-full hover:bg-white/5 transition-colors ${isLiked ? 'text-accent-600 dark:text-accent-500 bg-accent-100 dark:bg-accent-500/10' : 'text-zinc-400 hover:text-black dark:hover:text-white'}`}
                             onClick={(e) => { e.stopPropagation(); onToggleLike(); }}
                         >
                             <ThumbsUp size={16} fill={isLiked ? "currentColor" : "none"} />
@@ -439,7 +439,7 @@ const SongItem: React.FC<SongItemProps> = ({
             {/* Timestamp */}
             <div className="text-xs font-mono text-zinc-500 dark:text-zinc-600 self-start pt-1">
                 {song.isGenerating ? (
-                    <span className={song.queuePosition ? 'text-amber-500' : 'text-pink-500'}>
+                    <span className={song.queuePosition ? 'text-amber-500' : 'text-accent-500'}>
                         {song.queuePosition ? `#${song.queuePosition}` : 'Creating...'}
                     </span>
                 ) : song.duration}

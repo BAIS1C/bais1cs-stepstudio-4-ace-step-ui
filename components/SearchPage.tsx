@@ -213,10 +213,10 @@ export const SearchPage: React.FC<SearchPageProps> = ({
               placeholder="Search for songs, playlists, creators, or genres"
               value={searchQuery}
               onChange={(e) => handleSearchChange(e.target.value)}
-              className="w-full h-11 pl-12 pr-12 bg-white dark:bg-zinc-900/80 border border-zinc-200 dark:border-white/10 rounded-full text-zinc-900 dark:text-white placeholder-zinc-400 focus:outline-none focus:border-pink-500 dark:focus:border-pink-500 focus:ring-2 focus:ring-pink-500/20 transition-all"
+              className="w-full h-11 pl-12 pr-12 bg-white dark:bg-zinc-900/80 border border-zinc-200 dark:border-white/10 rounded-full text-zinc-900 dark:text-white placeholder-zinc-400 focus:outline-none focus:border-accent-500 dark:focus:border-accent-500 focus:ring-2 focus:ring-accent-500/20 transition-all"
             />
             {searching ? (
-              <Loader2 className="absolute right-4 top-1/2 -translate-y-1/2 text-pink-500 animate-spin" size={18} />
+              <Loader2 className="absolute right-4 top-1/2 -translate-y-1/2 text-accent-500 animate-spin" size={18} />
             ) : searchQuery && (
               <button
                 onClick={() => { setSearchQuery(''); setSearchResults(null); }}
@@ -413,8 +413,8 @@ export const SearchPage: React.FC<SearchPageProps> = ({
                 onClick={() => handleGenreClick(genre)}
                 className={`px-3 py-1.5 border rounded-full text-sm transition-all duration-200 group flex items-center gap-1.5 ${
                   searchQuery === genre
-                    ? 'bg-pink-500 border-pink-500 text-white'
-                    : 'bg-zinc-100 dark:bg-zinc-800/60 border-zinc-200 dark:border-white/5 text-zinc-600 dark:text-zinc-300 hover:bg-zinc-200 dark:hover:bg-zinc-700/60 hover:border-pink-500/30 hover:text-pink-600 dark:hover:text-pink-400'
+                    ? 'bg-accent-500 border-accent-500 text-white'
+                    : 'bg-zinc-100 dark:bg-zinc-800/60 border-zinc-200 dark:border-white/5 text-zinc-600 dark:text-zinc-300 hover:bg-zinc-200 dark:hover:bg-zinc-700/60 hover:border-accent-500/30 hover:text-accent-600 dark:hover:text-accent-400'
                 }`}
               >
                 {genre}
@@ -457,7 +457,7 @@ const FeaturedSongCard: React.FC<FeaturedSongCardProps> = ({
 
   return (
     <div
-      className="flex items-center gap-3 p-2 bg-white dark:bg-zinc-900/40 rounded-xl border border-zinc-100 dark:border-white/5 hover:border-pink-500/30 hover:bg-zinc-50 dark:hover:bg-zinc-800/40 transition-all cursor-pointer group"
+      className="flex items-center gap-3 p-2 bg-white dark:bg-zinc-900/40 rounded-xl border border-zinc-100 dark:border-white/5 hover:border-accent-500/30 hover:bg-zinc-50 dark:hover:bg-zinc-800/40 transition-all cursor-pointer group"
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
@@ -480,7 +480,7 @@ const FeaturedSongCard: React.FC<FeaturedSongCardProps> = ({
         <div className="flex items-center gap-1.5 mb-0.5">
           <span className="font-semibold text-zinc-900 dark:text-white text-sm truncate max-w-[140px]">{song.title}</span>
           {song.isPublic !== false && (
-            <span className="flex-shrink-0 text-[8px] font-bold text-white bg-gradient-to-r from-pink-500 to-purple-500 px-1 py-0.5 rounded">
+            <span className="flex-shrink-0 text-[8px] font-bold text-white bg-gradient-to-r from-accent-500 to-purple-500 px-1 py-0.5 rounded">
               v5
             </span>
           )}
@@ -490,7 +490,7 @@ const FeaturedSongCard: React.FC<FeaturedSongCardProps> = ({
             <button
               key={i}
               onClick={(e) => { e.stopPropagation(); onCopyTag(tag); }}
-              className="hover:text-pink-500 dark:hover:text-pink-400 transition-colors"
+              className="hover:text-accent-500 dark:hover:text-accent-400 transition-colors"
             >
               {tag}{i < tags.length - 1 ? ', ' : ''}
               {copiedTag === tag && <Check size={10} className="inline ml-0.5 text-green-500" />}
@@ -501,7 +501,7 @@ const FeaturedSongCard: React.FC<FeaturedSongCardProps> = ({
           {song.creator && (
             <button
               onClick={(e) => { e.stopPropagation(); onNavigateToProfile?.(song.creator!); }}
-              className="flex items-center gap-1 hover:text-pink-500 transition-colors max-w-[80px]"
+              className="flex items-center gap-1 hover:text-accent-500 transition-colors max-w-[80px]"
             >
               {song.creator_avatar ? (
                 <img
@@ -510,7 +510,7 @@ const FeaturedSongCard: React.FC<FeaturedSongCardProps> = ({
                   className="w-3.5 h-3.5 rounded-full object-cover"
                 />
               ) : (
-                <div className="w-3.5 h-3.5 rounded-full bg-gradient-to-br from-pink-500 to-purple-500 flex items-center justify-center text-[7px] text-white font-bold flex-shrink-0">
+                <div className="w-3.5 h-3.5 rounded-full bg-gradient-to-br from-accent-500 to-purple-500 flex items-center justify-center text-[7px] text-white font-bold flex-shrink-0">
                   {song.creator.charAt(0).toUpperCase()}
                 </div>
               )}
@@ -543,14 +543,14 @@ const CreatorCard: React.FC<CreatorCardProps> = ({
       className="flex-shrink-0 w-[110px] text-center cursor-pointer group"
       onClick={() => onNavigateToProfile?.(creator.username)}
     >
-      <div className="w-[90px] h-[90px] mx-auto rounded-full overflow-hidden mb-2 ring-2 ring-transparent group-hover:ring-pink-500 transition-all shadow-lg">
+      <div className="w-[90px] h-[90px] mx-auto rounded-full overflow-hidden mb-2 ring-2 ring-transparent group-hover:ring-accent-500 transition-all shadow-lg">
         <img
           src={creator.avatar_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${creator.username}`}
           alt={creator.username}
           className="w-full h-full object-cover"
         />
       </div>
-      <div className="font-semibold text-zinc-900 dark:text-white text-sm truncate group-hover:text-pink-500 transition-colors px-1">
+      <div className="font-semibold text-zinc-900 dark:text-white text-sm truncate group-hover:text-accent-500 transition-colors px-1">
         {creator.username}
       </div>
       <div className="text-[11px] text-zinc-500 truncate px-1">@{creator.username.toLowerCase().replace(/\s/g, '')}</div>
@@ -582,7 +582,7 @@ const PlaylistCard: React.FC<PlaylistCardProps> = ({
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
       </div>
-      <div className="font-semibold text-zinc-900 dark:text-white text-sm truncate group-hover:text-pink-500 transition-colors">
+      <div className="font-semibold text-zinc-900 dark:text-white text-sm truncate group-hover:text-accent-500 transition-colors">
         {playlist.name}
       </div>
       <div className="text-[11px] text-zinc-500 mb-1">{playlist.song_count || 0} songs</div>
@@ -601,7 +601,7 @@ const PlaylistCard: React.FC<PlaylistCardProps> = ({
               className="w-full h-full object-cover"
             />
           </div>
-          <span className="text-[11px] text-zinc-500 hover:text-pink-500 transition-colors truncate">
+          <span className="text-[11px] text-zinc-500 hover:text-accent-500 transition-colors truncate">
             {playlist.creator}
           </span>
         </div>

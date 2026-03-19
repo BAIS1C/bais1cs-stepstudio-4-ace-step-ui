@@ -46,18 +46,18 @@ export const UsernameModal: React.FC<UsernameModalProps> = ({ isOpen, onSubmit }
       {/* Modal */}
       <div className="relative w-full max-w-md bg-zinc-900 rounded-2xl shadow-2xl border border-white/10 overflow-hidden">
         {/* Header gradient */}
-        <div className="h-2 bg-gradient-to-r from-pink-500 via-purple-500 to-blue-500" />
+        <div className="h-2 bg-gradient-to-r from-accent-500 via-purple-500 to-blue-500" />
 
         <div className="p-8">
           {/* Logo */}
           <div className="flex justify-center mb-6">
-            <div className="w-16 h-16 rounded-full bg-gradient-to-br from-pink-500 to-purple-600 flex items-center justify-center shadow-lg">
+            <div className="w-16 h-16 rounded-full bg-gradient-to-br from-accent-500 to-purple-600 flex items-center justify-center shadow-lg">
               <Sparkles className="w-8 h-8 text-white" />
             </div>
           </div>
 
           {/* Title */}
-          <h2 className="text-2xl font-bold text-center text-white mb-2">
+          <h2 className="text-2xl font-bold text-center text-white mb-2 font-display tracking-wide">
             Welcome to ACE-Step UI
           </h2>
           <p className="text-zinc-400 text-center mb-8">
@@ -80,7 +80,7 @@ export const UsernameModal: React.FC<UsernameModalProps> = ({ isOpen, onSubmit }
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
                   placeholder="Enter your name"
-                  className="w-full pl-10 pr-4 py-3 bg-zinc-800 border border-zinc-700 rounded-xl text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent transition-all"
+                  className="w-full pl-10 pr-4 py-3 bg-zinc-800 border border-zinc-700 rounded-xl text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-accent-500 focus:border-transparent transition-all"
                   autoFocus
                   disabled={isLoading}
                 />
@@ -93,7 +93,7 @@ export const UsernameModal: React.FC<UsernameModalProps> = ({ isOpen, onSubmit }
             <button
               type="submit"
               disabled={isLoading || !username.trim()}
-              className="w-full py-3 bg-gradient-to-r from-pink-500 to-purple-600 text-white font-semibold rounded-xl hover:from-pink-600 hover:to-purple-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all transform hover:scale-[1.02] active:scale-[0.98]"
+              className="w-full py-3 bg-gradient-to-r from-accent-500 to-purple-600 text-white font-semibold rounded-xl hover:from-accent-600 hover:to-purple-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all transform hover:scale-[1.02] active:scale-[0.98]"
             >
               {isLoading ? (
                 <span className="flex items-center justify-center gap-2">

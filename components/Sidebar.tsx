@@ -27,7 +27,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
     <div className="flex flex-col h-full bg-white dark:bg-suno-sidebar border-r border-zinc-200 dark:border-white/5 flex-shrink-0 w-[72px] items-center py-4 z-30 transition-colors duration-300 overflow-y-auto scrollbar-hide">
       {/* Logo */}
       <div
-        className="w-10 h-10 rounded-full bg-gradient-to-br from-pink-500 to-purple-600 flex items-center justify-center mb-8 cursor-pointer shadow-lg hover:scale-105 transition-transform"
+        className="w-10 h-10 rounded-full bg-gradient-to-br from-accent-500 to-purple-600 flex items-center justify-center mb-8 cursor-pointer shadow-lg hover:scale-105 transition-transform"
         onClick={() => onNavigate('create')}
         title="ACE-Step UI"
       >
@@ -71,7 +71,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
             <div className="flex flex-col items-center gap-2">
               <div
                 onClick={onOpenSettings}
-                className="w-8 h-8 rounded-full bg-gradient-to-br from-pink-500 to-purple-600 flex items-center justify-center text-white text-xs font-bold cursor-pointer border border-white/20 hover:scale-110 transition-transform overflow-hidden"
+                className="w-8 h-8 rounded-full bg-gradient-to-br from-accent-500 to-purple-600 flex items-center justify-center text-white text-xs font-bold cursor-pointer border border-white/20 hover:scale-110 transition-transform overflow-hidden"
                 title={`${user.username} - Settings`}
               >
                 {user.avatar_url ? (
@@ -91,7 +91,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
           ) : (
             <button
               onClick={onLogin}
-              className="w-10 h-10 rounded-full hover:bg-zinc-100 dark:hover:bg-white/10 flex items-center justify-center text-zinc-500 dark:text-zinc-400 hover:text-pink-500 transition-colors mx-auto"
+              className="w-10 h-10 rounded-full hover:bg-zinc-100 dark:hover:bg-white/10 flex items-center justify-center text-zinc-500 dark:text-zinc-400 hover:text-accent-500 transition-colors mx-auto"
               title="Sign In"
             >
               <LogIn size={20} />
@@ -119,7 +119,7 @@ const NavItem: React.FC<NavItemProps> = ({ icon, label, active, onClick }) => (
     `}
     title={label}
   >
-    {active && <div className="absolute left-0 top-1/2 -translate-y-1/2 h-8 w-1 bg-pink-500 rounded-r-full"></div>}
+    {active && <div className="absolute left-0 top-1/2 -translate-y-1/2 h-8 w-1 bg-accent-500 rounded-r-full"></div>}
     {icon}
   </button>
 );
