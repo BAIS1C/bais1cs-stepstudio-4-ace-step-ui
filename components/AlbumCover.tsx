@@ -43,38 +43,39 @@ class SeededRandom {
   }
 }
 
-// Curated color palettes - music-themed combinations
+// Strands Nation color palettes — cyberpunk-themed combinations
+// Core tokens: cyan #00C2FF, purple #8b5cf6, magenta #F000B8, yellow #F9E100
 const palettes = [
-  // Sunset Vibes
-  { colors: ['#FF6B6B', '#FEC89A', '#FFD93D', '#C9184A'], bg: '#1a1a2e' },
-  // Ocean Depths
-  { colors: ['#0077B6', '#00B4D8', '#90E0EF', '#CAF0F8'], bg: '#03045E' },
-  // Forest Night
-  { colors: ['#2D6A4F', '#40916C', '#52B788', '#95D5B2'], bg: '#1B4332' },
-  // Neon Dreams
-  { colors: ['#F72585', '#7209B7', '#3A0CA3', '#4CC9F0'], bg: '#10002B' },
-  // Golden Hour
-  { colors: ['#FF9500', '#FF5400', '#FFBD00', '#FFE066'], bg: '#2D1B00' },
-  // Arctic Aurora
-  { colors: ['#48CAE4', '#00F5D4', '#9B5DE5', '#F15BB5'], bg: '#0A0A1A' },
-  // Lavender Haze
-  { colors: ['#E0AAFF', '#C77DFF', '#9D4EDD', '#7B2CBF'], bg: '#240046' },
-  // Cherry Blossom
-  { colors: ['#FFCCD5', '#FFB3C1', '#FF758F', '#C9184A'], bg: '#2B0A14' },
-  // Cyber Punk
-  { colors: ['#00FF87', '#60EFFF', '#FF00E5', '#FFE500'], bg: '#0D0D0D' },
-  // Deep Space
-  { colors: ['#7400B8', '#5E60CE', '#4EA8DE', '#56CFE1'], bg: '#03071E' },
-  // Warm Ember
-  { colors: ['#FFBA08', '#FAA307', '#F48C06', '#E85D04'], bg: '#370617' },
-  // Cool Mint
-  { colors: ['#64DFDF', '#72EFDD', '#80FFDB', '#5EEAD4'], bg: '#0D3B3B' },
-  // Velvet Rose
-  { colors: ['#9D174D', '#BE185D', '#DB2777', '#EC4899'], bg: '#1C0A14' },
-  // Electric Blue
-  { colors: ['#0EA5E9', '#38BDF8', '#7DD3FC', '#E0F2FE'], bg: '#0C1929' },
-  // Jungle Fever
-  { colors: ['#84CC16', '#A3E635', '#BEF264', '#ECFCCB'], bg: '#1A2E05' },
+  // Strands Core — cyan to purple gradient
+  { colors: ['#00C2FF', '#29CEFD', '#8b5cf6', '#B550FF'], bg: '#0A0B0D' },
+  // Signal Bleed — magenta to cyan interference
+  { colors: ['#F000B8', '#DA34F2', '#44ADFB', '#00C2FF'], bg: '#08090C' },
+  // Neon District — full spectrum cyberpunk
+  { colors: ['#00C2FF', '#8b5cf6', '#F000B8', '#F9E100'], bg: '#0A0B0D' },
+  // Digital Void — deep purple to violet
+  { colors: ['#7209B7', '#8b5cf6', '#B550FF', '#DA34F2'], bg: '#0D0818' },
+  // Faction: Ghost Protocol — cold cyan monochrome
+  { colors: ['#00C2FF', '#29CEFD', '#60EFFF', '#B0F0FF'], bg: '#060A0F' },
+  // Faction: Red Signal — magenta heat
+  { colors: ['#F000B8', '#FF2D87', '#EA32FD', '#FF6EC7'], bg: '#120612' },
+  // Data Stream — cyan to green terminal
+  { colors: ['#00C2FF', '#00F5D4', '#00FF87', '#60EFFF'], bg: '#050D0D' },
+  // Arc Reactor — yellow to cyan energy
+  { colors: ['#F9E100', '#FFD700', '#00C2FF', '#29CEFD'], bg: '#0C0A04' },
+  // Corrupted Memory — glitch palette
+  { colors: ['#FF003C', '#00C2FF', '#F9E100', '#F000B8'], bg: '#0A0B0D' },
+  // Deep Strand — purple nebula
+  { colors: ['#5E60CE', '#8b5cf6', '#4EA8DE', '#00C2FF'], bg: '#03071E' },
+  // Night Market — warm neon on dark
+  { colors: ['#F9E100', '#FF9500', '#F000B8', '#8b5cf6'], bg: '#0D0A06' },
+  // Chrome Echo — monochrome silver with cyan accent
+  { colors: ['#C0C0C0', '#808080', '#00C2FF', '#29CEFD'], bg: '#0A0B0D' },
+  // Synth Wave — retro cyberpunk
+  { colors: ['#F000B8', '#8b5cf6', '#00C2FF', '#F9E100'], bg: '#0A0610' },
+  // Quantum Drift — blue-shift
+  { colors: ['#0EA5E9', '#00C2FF', '#38BDF8', '#8b5cf6'], bg: '#060B14' },
+  // Strands Banner — exact logo gradient
+  { colors: ['#13F8FD', '#628BF9', '#B550FF', '#EA32FD'], bg: '#0A0B0D' },
 ];
 
 type PatternType = 'aurora' | 'mesh' | 'orbs' | 'rays' | 'waves' | 'geometric' | 'nebula' | 'gradient' | 'rings' | 'crystal';
@@ -288,6 +289,14 @@ export const AlbumCover: React.FC<AlbumCoverProps> = ({ seed, size = 'md', class
       className={`${sizeClasses[size]} rounded-md shadow-lg flex-shrink-0 overflow-hidden relative ${className}`}
       style={coverStyle}
     >
+      {/* Subtle Strands logo watermark — bottom-right, low opacity */}
+      <img
+        src="/strands-logo.svg"
+        alt=""
+        aria-hidden="true"
+        className="absolute bottom-1 right-1 opacity-[0.08] pointer-events-none"
+        style={{ width: '30%', maxWidth: '48px', height: 'auto', filter: 'brightness(2)' }}
+      />
       {children}
     </div>
   );

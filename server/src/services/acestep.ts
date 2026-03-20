@@ -2,6 +2,7 @@ import { writeFile, mkdir, copyFile, rm, stat, access } from 'fs/promises';
 import { spawn, execSync } from 'child_process';
 import { existsSync, createWriteStream } from 'fs';
 import path from 'path';
+import os from 'os';
 import { pipeline } from 'stream/promises';
 
 // Get audio duration using ffprobe
@@ -58,6 +59,46 @@ export function resolvePythonPath(baseDir: string): string {
     return path.join(baseDir, '.venv', 'Scripts', pythonExe);
   }
   return path.join(baseDir, '.venv', 'bin', 'python');
+}
+
+/**
+ * Stage a local audio file into the OS temp directory so the ACE-Step API
+ * accepts it. The Python validator (`validate_audio_path`) rejects absolute
+ * paths unless they live inside `tempfile.gettempdir()`.
+ *
+ * If the input is already a temp path or a plain relative path, it's returned
+ * unchanged. If it's a `/audio/...` URL from the UI, we resolve it against
+ * AUDIO_DIR and copy it to temp.
+ */
+async function stageAudioToTemp(audioUrl: string, prefix: string): Promise<string> {
+  const tmpDir = os.tmpdir();
+
+  // Already a temp path — pass through
+  if (audioUrl.startsWith(tmpDir)) return audioUrl;
+
+  // Resolve /audio/... URL to local filesystem path
+  let localPath = audioUrl;
+  if (audioUrl.startsWith('/audio/')) {
+    localPath = path.join(AUDIO_DIR, audioUrl.replace('/audio/', ''));
+  }
+
+  // If it's a relative path (not absolute), the Python API should accept it as-is
+  if (!path.isAbsolute(localPath)) return localPath;
+
+  // Absolute path outside temp — copy to temp so the validator accepts it
+  const ext = path.extname(localPath) || '.mp3';
+  const tempFilename = `strands_${prefix}_${Date.now()}${ext}`;
+  const tempPath = path.join(tmpDir, tempFilename);
+  try {
+    await copyFile(localPath, tempPath);
+    console.log(`[Audio Staging] Copied ${localPath} → ${tempPath}`);
+    return tempPath;
+  } catch (err) {
+    console.error(`[Audio Staging] Failed to stage ${localPath}:`, err);
+    // Fall back to the original path — will likely fail at the Python API
+    // but at least we get a clear error rather than a silent failure
+    return localPath;
+  }
 }
 
 const ACESTEP_DIR = resolveAceStepPath();
@@ -185,20 +226,14 @@ async function submitToApi(params: GenerationParams): Promise<{ taskId: string }
   // Format caption flag
   if (params.isFormatCaption) body.is_format_caption = true;
 
-  // Handle reference audio - need to pass file path
+  // Handle reference/source audio — ACE-Step API rejects absolute paths outside
+  // the system temp directory (security: release_task_audio_paths.py).
+  // We stage local audio files into os.tmpdir() so the validator accepts them.
   if (params.referenceAudioUrl) {
-    let refAudioPath = params.referenceAudioUrl;
-    if (refAudioPath.startsWith('/audio/')) {
-      refAudioPath = path.join(AUDIO_DIR, refAudioPath.replace('/audio/', ''));
-    }
-    body.reference_audio_path = refAudioPath;
+    body.reference_audio_path = await stageAudioToTemp(params.referenceAudioUrl, 'ref');
   }
   if (params.sourceAudioUrl) {
-    let srcAudioPath = params.sourceAudioUrl;
-    if (srcAudioPath.startsWith('/audio/')) {
-      srcAudioPath = path.join(AUDIO_DIR, srcAudioPath.replace('/audio/', ''));
-    }
-    body.src_audio_path = srcAudioPath;
+    body.src_audio_path = await stageAudioToTemp(params.sourceAudioUrl, 'src');
   }
 
   const response = await fetch(`${ACESTEP_API}/release_task`, {

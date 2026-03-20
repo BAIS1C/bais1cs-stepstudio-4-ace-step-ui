@@ -1784,8 +1784,23 @@ export const CreatePanel: React.FC<CreatePanelProps> = ({ onGenerate, isGenerati
         </div>
       )}
 
-      {/* Footer Create Button */}
+      {/* Footer: Usage Tier + Create Button */}
       <div className="p-4 mt-auto sticky bottom-0 bg-zinc-50/95 dark:bg-suno-panel/95 backdrop-blur-sm z-10 border-t border-zinc-200 dark:border-white/5 space-y-3">
+
+        {/* Usage tier messaging — TODO: [STRANDS-BILLING] Wire to actual auth/subscription state.
+            Currently shows static free-tier info. When billing is live, check user.subscriptionTier
+            and conditionally render: remaining generations, upgrade CTA, or unlimited badge.
+            Quest unlock integration comes via the Zely onboarding stack (post-Proper Gander). */}
+        <div className="bg-accent-500/5 border border-accent-500/20 rounded-lg px-3 py-2.5 space-y-1">
+          <div className="flex items-center justify-between">
+            <span className="text-[11px] font-bold text-accent-600 dark:text-accent-400 uppercase tracking-wide">Free Tier</span>
+            <span className="text-[10px] text-zinc-500 dark:text-zinc-400">2 of 2 generations remaining</span>
+          </div>
+          <p className="text-[10px] text-zinc-500 dark:text-zinc-400 leading-relaxed">
+            Unlock unlimited generations for <span className="font-bold text-accent-600 dark:text-accent-400">$10/month</span> — or earn free credits by completing quests in-game.
+          </p>
+        </div>
+
         <button
           onClick={handleGenerate}
           className="w-full h-12 rounded-xl font-bold font-display text-base tracking-wide flex items-center justify-center gap-2 transition-all transform active:scale-[0.98] bg-gradient-to-r from-accent-500 to-strands-purple text-white shadow-lg shadow-accent-500/25 hover:brightness-110"

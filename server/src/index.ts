@@ -38,7 +38,7 @@ app.use(helmet({
       baseUri: ["'self'"],
       fontSrc: ["'self'", 'https:', 'data:'],
       formAction: ["'self'"],
-      frameAncestors: ["'self'"],
+      frameAncestors: ["'self'", 'https://demo.strandsnation.xyz', 'https://strandsnation.xyz', 'https://*.strandsnation.xyz', 'https://*.vercel.app'],
       imgSrc: ["'self'", 'data:', 'https:'],
       objectSrc: ["'none'"],
       scriptSrc: ["'self'"],
@@ -67,6 +67,11 @@ app.use(cors({
     }
     // Allow configured frontend URL
     if (origin === config.frontendUrl) {
+      return callback(null, true);
+    }
+    // Allow Strands demo site and tunnel hostnames
+    const strandsPattern = /^https:\/\/(.*\.)?strandsnation\.(xyz|vercel\.app)/;
+    if (strandsPattern.test(origin)) {
       return callback(null, true);
     }
     callback(new Error('Not allowed by CORS'));
