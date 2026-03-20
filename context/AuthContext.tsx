@@ -17,6 +17,22 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 const TOKEN_KEY = 'acestep_token';
 const USER_KEY = 'acestep_user';
 
+/* ── Demo mode detection (matches App.tsx) ── */
+const IS_DEMO = typeof window !== 'undefined' && (
+  window.location.pathname.startsWith('/stepstudio') ||
+  window.parent !== window
+);
+
+/** Create a local-only demo user when the API is unreachable */
+function createDemoUser(username: string): { user: User; token: string } {
+  const demoUser: User = {
+    id: `demo-${Date.now()}`,
+    username,
+    createdAt: new Date().toISOString(),
+  };
+  return { user: demoUser, token: 'demo-token-offline' };
+}
+
 export function AuthProvider({ children }: { children: ReactNode }): React.ReactElement {
   // Start with null - we'll auto-login from database on mount
   const [user, setUser] = useState<User | null>(null);
@@ -37,15 +53,28 @@ export function AuthProvider({ children }: { children: ReactNode }): React.React
         localStorage.setItem(USER_KEY, JSON.stringify(userData));
       } catch (error: unknown) {
         // No user in database (404) or server error - that's okay
-        // Clear any stale localStorage data
         const err = error as { message?: string };
         if (err.message?.startsWith('404:')) {
           // No user exists yet - frontend will show username setup
           console.log('No user in database, need to set up username');
+        } else if (IS_DEMO) {
+          // Demo mode: API unreachable — check localStorage for returning demo visitor
+          const savedUser = localStorage.getItem(USER_KEY);
+          const savedToken = localStorage.getItem(TOKEN_KEY);
+          if (savedUser && savedToken) {
+            try {
+              setUser(JSON.parse(savedUser));
+              setToken(savedToken);
+              console.log('Demo mode: restored offline user from localStorage');
+              setIsLoading(false);
+              return;
+            } catch { /* fall through to show username modal */ }
+          }
+          console.log('Demo mode: API unreachable, will show username modal');
         } else {
           console.warn('Auto-login failed:', error);
         }
-        // Clear stale data
+        // Clear stale data (only if we didn't restore above)
         setToken(null);
         setUser(null);
         localStorage.removeItem(TOKEN_KEY);
@@ -59,11 +88,25 @@ export function AuthProvider({ children }: { children: ReactNode }): React.React
   }, []);
 
   const setupUser = useCallback(async (username: string): Promise<void> => {
-    const { user: userData, token: newToken } = await authApi.setup(username);
-    setUser(userData);
-    setToken(newToken);
-    localStorage.setItem(TOKEN_KEY, newToken);
-    localStorage.setItem(USER_KEY, JSON.stringify(userData));
+    try {
+      const { user: userData, token: newToken } = await authApi.setup(username);
+      setUser(userData);
+      setToken(newToken);
+      localStorage.setItem(TOKEN_KEY, newToken);
+      localStorage.setItem(USER_KEY, JSON.stringify(userData));
+    } catch (error) {
+      if (IS_DEMO) {
+        // Demo mode: API unreachable — create local demo user so UI is browsable
+        console.warn('Demo mode: API unreachable, creating offline demo user');
+        const { user: demoUserData, token: demoToken } = createDemoUser(username);
+        setUser(demoUserData);
+        setToken(demoToken);
+        localStorage.setItem(TOKEN_KEY, demoToken);
+        localStorage.setItem(USER_KEY, JSON.stringify(demoUserData));
+      } else {
+        throw error;
+      }
+    }
   }, []);
 
   const updateUsername = useCallback(async (username: string): Promise<void> => {

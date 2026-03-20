@@ -953,13 +953,13 @@ export default function App() {
     };
 
     return (
-      <div className="flex-1 flex flex-col items-center justify-center p-8 bg-white dark:bg-suno-DEFAULT transition-colors duration-300">
+      <div className="flex-1 flex flex-col items-center justify-center p-8" style={{ background: '#0a0a0f' }}>
         <div className="max-w-md w-full text-center space-y-6">
-          <div className="text-4xl">🎬</div>
-          <h1 className="text-2xl font-bold text-zinc-900 dark:text-white" style={{ fontFamily: "'Orbitron', sans-serif" }}>
-            VIDEO STUDIO
+          <div style={{ fontSize: '2.5rem', filter: 'grayscale(0.3)' }}>🎬</div>
+          <h1 style={{ fontFamily: "'Orbitron', sans-serif", fontSize: '1.5rem', fontWeight: 700, color: '#00C2FF', letterSpacing: '0.1em', textTransform: 'uppercase' as const }}>
+            Video Studio
           </h1>
-          <p className="text-sm text-zinc-500 dark:text-zinc-400">
+          <p style={{ fontSize: '0.85rem', color: '#6b7280', lineHeight: 1.6 }}>
             Upload an audio file to create a music video with visualizers, effects, and your custom presets.
           </p>
 
@@ -968,12 +968,17 @@ export default function App() {
             onDragLeave={() => setDragOver(false)}
             onDrop={(e) => { e.preventDefault(); setDragOver(false); const f = e.dataTransfer.files[0]; if (f) handleFile(f); }}
             onClick={() => fileInputRef.current?.click()}
-            className={`
-              border-2 border-dashed rounded-2xl p-10 cursor-pointer transition-all
-              ${dragOver
-                ? 'border-accent-500 bg-accent-500/10 scale-[1.02]'
-                : 'border-zinc-300 dark:border-white/20 bg-zinc-50 dark:bg-white/5 hover:border-accent-400 dark:hover:border-accent-500/50 hover:bg-zinc-100 dark:hover:bg-white/10'}
-            `}
+            style={{
+              border: dragOver ? '2px solid #00C2FF' : '2px dashed rgba(255,255,255,0.1)',
+              borderRadius: '16px',
+              padding: '3rem 2rem',
+              cursor: 'pointer',
+              transition: 'all 0.2s ease',
+              background: dragOver ? 'rgba(0,194,255,0.06)' : 'rgba(255,255,255,0.02)',
+              transform: dragOver ? 'scale(1.02)' : 'scale(1)',
+            }}
+            onMouseEnter={(e) => { if (!dragOver) { e.currentTarget.style.borderColor = 'rgba(0,194,255,0.4)'; e.currentTarget.style.background = 'rgba(0,194,255,0.03)'; }}}
+            onMouseLeave={(e) => { if (!dragOver) { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)'; e.currentTarget.style.background = 'rgba(255,255,255,0.02)'; }}}
           >
             <input
               ref={fileInputRef}
@@ -982,18 +987,18 @@ export default function App() {
               className="hidden"
               onChange={(e) => { const f = e.target.files?.[0]; if (f) handleFile(f); e.target.value = ''; }}
             />
-            <div className="space-y-3">
-              <div className="text-3xl">📂</div>
-              <div className="text-sm font-medium text-zinc-700 dark:text-zinc-200">
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px' }}>
+              <div style={{ fontSize: '2rem', opacity: 0.7 }}>📂</div>
+              <div style={{ fontSize: '0.875rem', fontWeight: 500, color: dragOver ? '#00C2FF' : '#e5e7eb' }}>
                 {dragOver ? 'Drop it here' : 'Drag & drop audio file'}
               </div>
-              <div className="text-xs text-zinc-400">
+              <div style={{ fontSize: '0.7rem', color: '#4b5563' }}>
                 or click to browse · MP3, WAV, FLAC, OGG, M4A
               </div>
             </div>
           </div>
 
-          <p className="text-[10px] text-zinc-400 dark:text-zinc-500">
+          <p style={{ fontSize: '0.6rem', color: '#374151' }}>
             Video is rendered in-browser using WebAssembly FFmpeg. Nothing is uploaded to any server.
           </p>
         </div>

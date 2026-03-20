@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, User, Sparkles } from 'lucide-react';
+import { X, User } from 'lucide-react';
 
 interface UsernameModalProps {
   isOpen: boolean;
@@ -51,9 +51,21 @@ export const UsernameModal: React.FC<UsernameModalProps> = ({ isOpen, onSubmit }
         <div className="p-8">
           {/* Logo */}
           <div className="flex justify-center mb-6">
-            <div className="w-16 h-16 rounded-full bg-gradient-to-br from-accent-500 to-purple-600 flex items-center justify-center shadow-lg">
-              <Sparkles className="w-8 h-8 text-white" />
-            </div>
+            <img
+              src="/strands-logo-color.svg"
+              alt="Strands"
+              className="w-16 h-16"
+              style={{ filter: 'drop-shadow(0 4px 12px rgba(0,194,255,0.3))' }}
+              onError={(e) => {
+                // Fallback if logo not available (local dev)
+                const el = e.currentTarget;
+                el.style.display = 'none';
+                const fallback = document.createElement('div');
+                fallback.className = 'w-16 h-16 rounded-full bg-gradient-to-br from-cyan-500 to-purple-600 flex items-center justify-center shadow-lg';
+                fallback.innerHTML = '<span style="font-size:1.5rem;color:white;font-weight:bold;">S</span>';
+                el.parentElement?.appendChild(fallback);
+              }}
+            />
           </div>
 
           {/* Title */}
