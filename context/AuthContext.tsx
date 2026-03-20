@@ -44,37 +44,46 @@ export function AuthProvider({ children }: { children: ReactNode }): React.React
   // Auto-login on mount: Try to get existing user from database
   useEffect(() => {
     async function initAuth(): Promise<void> {
+      // DEMO MODE: Never auto-login from the real server — we don't want
+      // demo visitors seeing the local user's account & songs.
+      // Check localStorage for a returning demo visitor, otherwise show the modal.
+      if (IS_DEMO) {
+        const savedUser = localStorage.getItem(USER_KEY);
+        const savedToken = localStorage.getItem(TOKEN_KEY);
+        if (savedUser && savedToken) {
+          try {
+            const parsed = JSON.parse(savedUser);
+            // Only restore if it's a demo user (not a leaked real session)
+            if (parsed.id?.startsWith('demo-')) {
+              setUser(parsed);
+              setToken(savedToken);
+              console.log('Demo mode: restored demo user from localStorage');
+              setIsLoading(false);
+              return;
+            }
+          } catch { /* fall through */ }
+        }
+        // Clear any stale real-user data and show username modal
+        localStorage.removeItem(TOKEN_KEY);
+        localStorage.removeItem(USER_KEY);
+        setIsLoading(false);
+        return;
+      }
+
+      // LOCAL MODE: Auto-login from the real server
       try {
-        // First, try auto-login from database (for local single-user app)
         const { user: userData, token: newToken } = await authApi.auto();
         setUser(userData);
         setToken(newToken);
         localStorage.setItem(TOKEN_KEY, newToken);
         localStorage.setItem(USER_KEY, JSON.stringify(userData));
       } catch (error: unknown) {
-        // No user in database (404) or server error - that's okay
         const err = error as { message?: string };
         if (err.message?.startsWith('404:')) {
-          // No user exists yet - frontend will show username setup
           console.log('No user in database, need to set up username');
-        } else if (IS_DEMO) {
-          // Demo mode: API unreachable — check localStorage for returning demo visitor
-          const savedUser = localStorage.getItem(USER_KEY);
-          const savedToken = localStorage.getItem(TOKEN_KEY);
-          if (savedUser && savedToken) {
-            try {
-              setUser(JSON.parse(savedUser));
-              setToken(savedToken);
-              console.log('Demo mode: restored offline user from localStorage');
-              setIsLoading(false);
-              return;
-            } catch { /* fall through to show username modal */ }
-          }
-          console.log('Demo mode: API unreachable, will show username modal');
         } else {
           console.warn('Auto-login failed:', error);
         }
-        // Clear stale data (only if we didn't restore above)
         setToken(null);
         setUser(null);
         localStorage.removeItem(TOKEN_KEY);
@@ -88,25 +97,22 @@ export function AuthProvider({ children }: { children: ReactNode }): React.React
   }, []);
 
   const setupUser = useCallback(async (username: string): Promise<void> => {
-    try {
-      const { user: userData, token: newToken } = await authApi.setup(username);
-      setUser(userData);
-      setToken(newToken);
-      localStorage.setItem(TOKEN_KEY, newToken);
-      localStorage.setItem(USER_KEY, JSON.stringify(userData));
-    } catch (error) {
-      if (IS_DEMO) {
-        // Demo mode: API unreachable — create local demo user so UI is browsable
-        console.warn('Demo mode: API unreachable, creating offline demo user');
-        const { user: demoUserData, token: demoToken } = createDemoUser(username);
-        setUser(demoUserData);
-        setToken(demoToken);
-        localStorage.setItem(TOKEN_KEY, demoToken);
-        localStorage.setItem(USER_KEY, JSON.stringify(demoUserData));
-      } else {
-        throw error;
-      }
+    if (IS_DEMO) {
+      // Demo mode: always create a local demo user — never hit the real auth API
+      const { user: demoUserData, token: demoToken } = createDemoUser(username);
+      setUser(demoUserData);
+      setToken(demoToken);
+      localStorage.setItem(TOKEN_KEY, demoToken);
+      localStorage.setItem(USER_KEY, JSON.stringify(demoUserData));
+      return;
     }
+
+    // Local mode: use the real API
+    const { user: userData, token: newToken } = await authApi.setup(username);
+    setUser(userData);
+    setToken(newToken);
+    localStorage.setItem(TOKEN_KEY, newToken);
+    localStorage.setItem(USER_KEY, JSON.stringify(userData));
   }, []);
 
   const updateUsername = useCallback(async (username: string): Promise<void> => {

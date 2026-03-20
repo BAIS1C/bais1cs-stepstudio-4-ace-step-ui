@@ -52,7 +52,7 @@ export const UsernameModal: React.FC<UsernameModalProps> = ({ isOpen, onSubmit }
           {/* Logo */}
           <div className="flex justify-center mb-6">
             <img
-              src="/strands-logo-color.svg"
+              src={typeof window !== 'undefined' && window.location.pathname.startsWith('/stepstudio') ? '/stepstudio/strands-logo.svg' : '/strands-logo-color.svg'}
               alt="Strands"
               className="w-16 h-16"
               style={{ filter: 'drop-shadow(0 4px 12px rgba(0,194,255,0.3))' }}
@@ -70,7 +70,7 @@ export const UsernameModal: React.FC<UsernameModalProps> = ({ isOpen, onSubmit }
 
           {/* Title */}
           <h2 className="text-2xl font-bold text-center text-white mb-2 font-display tracking-wide">
-            Welcome to Strands Sounds
+            Welcome to Strands SoundWave
           </h2>
           <p className="text-zinc-400 text-center mb-8">
             Enter your name to get started creating AI music

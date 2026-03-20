@@ -29,9 +29,13 @@ export const Sidebar: React.FC<SidebarProps> = ({
       <div
         className="w-11 h-11 rounded-xl flex items-center justify-center mb-6 cursor-pointer hover:scale-105 transition-transform overflow-hidden"
         onClick={() => onNavigate('create')}
-        title="Strands Sounds Creator"
+        title="Strands SoundWave"
       >
-        <img src="/strands-logo.svg" alt="Strands" className="w-10 h-10 object-contain" />
+        <img
+          src={typeof window !== 'undefined' && window.location.pathname.startsWith('/stepstudio') ? '/stepstudio/strands-logo.svg' : '/strands-logo.svg'}
+          alt="Strands"
+          className="w-10 h-10 object-contain"
+        />
       </div>
 
       <nav className="flex-1 flex flex-col gap-4 w-full px-3">
