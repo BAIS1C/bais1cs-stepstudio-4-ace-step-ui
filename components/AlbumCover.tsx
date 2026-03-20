@@ -291,7 +291,7 @@ export const AlbumCover: React.FC<AlbumCoverProps> = ({ seed, size = 'md', class
     >
       {/* Subtle Strands logo watermark — bottom-right, low opacity */}
       <img
-        src="/strands-logo.svg"
+        src={typeof window !== 'undefined' && window.location.pathname.startsWith('/stepstudio') ? '/stepstudio/strands-logo.svg' : '/strands-logo.svg'}
         alt=""
         aria-hidden="true"
         className="absolute bottom-1 right-1 opacity-[0.08] pointer-events-none"

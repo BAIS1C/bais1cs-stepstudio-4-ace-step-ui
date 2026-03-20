@@ -48,6 +48,46 @@ const STRANDS_DEMO_TRACKS: Song[] = [
   { id: 'strands-15', title: 'Strands Theme (Run it Mother f&cker Mix)', lyrics: '', style: 'Breakbeat', audioUrl: '/audio/soundtrack/who is god and why did yu do this.mp3', coverUrl: '', duration: '4:05', createdAt: new Date('2026-01-15'), tags: ['strands', 'breakbeat'], isPublic: true, likeCount: 62, viewCount: 198, creator: 'SpacemanTheDJ' },
 ];
 
+/* ── Server status indicator for demo banner ── */
+function DemoServerStatus() {
+  const [status, setStatus] = useState<'checking' | 'online' | 'offline'>('checking');
+
+  useEffect(() => {
+    if (!IS_DEMO) return;
+
+    const API_BASE = '/api/soundwave';
+
+    async function checkServer() {
+      try {
+        const res = await fetch(`${API_BASE}/api/auth/auto`, { method: 'GET', signal: AbortSignal.timeout(5000) });
+        // Any response from the server (even 404 for "no user") means it's reachable
+        setStatus(res.ok || res.status === 404 ? 'online' : 'online');
+      } catch {
+        setStatus('offline');
+      }
+    }
+
+    checkServer();
+    const interval = setInterval(checkServer, 30_000); // re-check every 30s
+    return () => clearInterval(interval);
+  }, []);
+
+  const color = status === 'online' ? '#22c55e' : status === 'offline' ? '#ef4444' : '#6b7280';
+  const label = status === 'online' ? 'SERVER ONLINE' : status === 'offline' ? 'SERVER OFFLINE' : 'CHECKING...';
+  const glow = status === 'online' ? '0 0 6px rgba(34,197,94,0.5)' : status === 'offline' ? '0 0 6px rgba(239,68,68,0.4)' : 'none';
+
+  return (
+    <span style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', color }}>
+      <span style={{
+        width: '6px', height: '6px', borderRadius: '50%',
+        backgroundColor: color, boxShadow: glow,
+        animation: status === 'online' ? 'none' : status === 'checking' ? 'pulse 1.5s infinite' : 'none',
+      }} />
+      {label}
+    </span>
+  );
+}
+
 export default function App() {
   // Responsive
   const { isMobile, isDesktop } = useResponsive();
@@ -59,8 +99,9 @@ export default function App() {
   const activeJobsRef = useRef<Map<string, { tempId: string; pollInterval: ReturnType<typeof setInterval> }>>(new Map());
   const [activeJobCount, setActiveJobCount] = useState(0);
 
-  // Theme State
+  // Theme State — demo mode forces dark to match demoOS chrome
   const [theme, setTheme] = useState<'dark' | 'light'>(() => {
+    if (IS_DEMO) return 'dark';
     const stored = localStorage.getItem('theme');
     if (stored === 'dark' || stored === 'light') return stored;
     return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
@@ -1166,12 +1207,12 @@ export default function App() {
     <div className="flex flex-col h-screen bg-white dark:bg-suno-DEFAULT text-zinc-900 dark:text-white font-sans antialiased selection:bg-accent-500/30 transition-colors duration-300">
       {IS_DEMO && (
         <div className="flex items-center justify-center gap-3 px-4 py-1.5 text-[11px] tracking-wider font-medium"
-          style={{ background: 'linear-gradient(90deg, rgba(0,194,255,0.08), rgba(139,92,246,0.08), rgba(240,0,184,0.08))', borderBottom: '1px solid rgba(0,194,255,0.12)', color: '#a0aec0' }}>
-          <span style={{ color: '#00C2FF' }}>DEMO MODE</span>
-          <span>·</span>
+          style={{ background: '#0a0a0f', borderBottom: '1px solid rgba(0,194,255,0.15)', color: '#6b7280' }}>
+          <span style={{ color: '#00C2FF', textShadow: '0 0 8px rgba(0,194,255,0.3)' }}>DEMO MODE</span>
+          <span style={{ color: '#333' }}>·</span>
           <span>Uploads cleared after generation</span>
-          <span>·</span>
-          <span>Max 30s · 5 gens/hour</span>
+          <span style={{ color: '#333' }}>·</span>
+          <DemoServerStatus />
         </div>
       )}
       <div className="flex-1 flex overflow-hidden">

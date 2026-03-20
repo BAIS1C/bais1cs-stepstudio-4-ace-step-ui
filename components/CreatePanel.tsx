@@ -623,7 +623,11 @@ export const CreatePanel: React.FC<CreatePanelProps> = ({ onGenerate, isGenerati
         {/* Header - Branding + Mode Toggle */}
         <div className="flex flex-col gap-3">
           <div className="flex items-center gap-2">
-            <img src="/strands-logo.svg" alt="Strands" className="w-5 h-5" />
+            <img
+              src={typeof window !== 'undefined' && window.location.pathname.startsWith('/stepstudio') ? '/stepstudio/strands-logo.svg' : '/strands-logo.svg'}
+              alt="Strands"
+              className="w-5 h-5"
+            />
             <span className="text-sm font-display font-bold tracking-wider text-zinc-900 dark:text-white">STRANDS SOUNDS</span>
             <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse ml-auto"></div>
           </div>

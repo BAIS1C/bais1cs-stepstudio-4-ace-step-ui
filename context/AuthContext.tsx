@@ -48,22 +48,25 @@ export function AuthProvider({ children }: { children: ReactNode }): React.React
       // demo visitors seeing the local user's account & songs.
       // Check localStorage for a returning demo visitor, otherwise show the modal.
       if (IS_DEMO) {
+        // Demo mode: restore a previous demo session from localStorage
+        // (could be a real server user or an offline demo user).
+        // We skip auto-login from the SERVER to prevent inheriting the
+        // local admin account — but we DO restore from localStorage.
         const savedUser = localStorage.getItem(USER_KEY);
         const savedToken = localStorage.getItem(TOKEN_KEY);
         if (savedUser && savedToken) {
           try {
             const parsed = JSON.parse(savedUser);
-            // Only restore if it's a demo user (not a leaked real session)
-            if (parsed.id?.startsWith('demo-')) {
+            if (parsed.id && parsed.username) {
               setUser(parsed);
               setToken(savedToken);
-              console.log('Demo mode: restored demo user from localStorage');
+              console.log('Demo mode: restored session from localStorage');
               setIsLoading(false);
               return;
             }
           } catch { /* fall through */ }
         }
-        // Clear any stale real-user data and show username modal
+        // No saved session — show username modal
         localStorage.removeItem(TOKEN_KEY);
         localStorage.removeItem(USER_KEY);
         setIsLoading(false);
@@ -97,22 +100,28 @@ export function AuthProvider({ children }: { children: ReactNode }): React.React
   }, []);
 
   const setupUser = useCallback(async (username: string): Promise<void> => {
-    if (IS_DEMO) {
-      // Demo mode: always create a local demo user — never hit the real auth API
-      const { user: demoUserData, token: demoToken } = createDemoUser(username);
-      setUser(demoUserData);
-      setToken(demoToken);
-      localStorage.setItem(TOKEN_KEY, demoToken);
-      localStorage.setItem(USER_KEY, JSON.stringify(demoUserData));
-      return;
+    // Both local and demo mode: create a real user on the server so they
+    // get a valid token for generation. Demo mode only skips AUTO-LOGIN
+    // (to prevent inheriting the local admin account), not user creation.
+    try {
+      const { user: userData, token: newToken } = await authApi.setup(username);
+      setUser(userData);
+      setToken(newToken);
+      localStorage.setItem(TOKEN_KEY, newToken);
+      localStorage.setItem(USER_KEY, JSON.stringify(userData));
+    } catch (error) {
+      if (IS_DEMO) {
+        // API unreachable — fall back to local demo user (browsing only, no generation)
+        console.warn('Demo mode: API unreachable, creating offline demo user');
+        const { user: demoUserData, token: demoToken } = createDemoUser(username);
+        setUser(demoUserData);
+        setToken(demoToken);
+        localStorage.setItem(TOKEN_KEY, demoToken);
+        localStorage.setItem(USER_KEY, JSON.stringify(demoUserData));
+      } else {
+        throw error;
+      }
     }
-
-    // Local mode: use the real API
-    const { user: userData, token: newToken } = await authApi.setup(username);
-    setUser(userData);
-    setToken(newToken);
-    localStorage.setItem(TOKEN_KEY, newToken);
-    localStorage.setItem(USER_KEY, JSON.stringify(userData));
   }, []);
 
   const updateUsername = useCallback(async (username: string): Promise<void> => {
