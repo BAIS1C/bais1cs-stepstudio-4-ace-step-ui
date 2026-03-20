@@ -1,5 +1,5 @@
 import React from 'react';
-import { Library, Disc, Search, User, LogIn, LogOut, Sun, Moon } from 'lucide-react';
+import { Library, Disc, Search, User, LogIn, LogOut, Sun, Moon, Film } from 'lucide-react';
 import { View } from '../types';
 
 interface SidebarProps {
@@ -53,6 +53,16 @@ export const Sidebar: React.FC<SidebarProps> = ({
           active={currentView === 'search'}
           onClick={() => onNavigate('search')}
         />
+
+        {/* Video Studio — local use only, hidden in demo/iframe */}
+        {typeof window !== 'undefined' && !window.location.pathname.startsWith('/stepstudio') && window.parent === window && (
+          <NavItem
+            icon={<Film size={24} />}
+            label="Video"
+            active={currentView === 'video-studio'}
+            onClick={() => onNavigate('video-studio')}
+          />
+        )}
 
         <div className="mt-auto flex flex-col gap-4">
           <button

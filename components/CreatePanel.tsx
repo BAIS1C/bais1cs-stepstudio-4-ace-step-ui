@@ -1632,6 +1632,11 @@ export const CreatePanel: React.FC<CreatePanelProps> = ({ onGenerate, isGenerati
               {uploadError && (
                 <div className="mt-2 text-xs text-rose-500">{uploadError}</div>
               )}
+              {typeof window !== 'undefined' && (window.location.pathname.startsWith('/stepstudio') || window.parent !== window) && (
+                <div className="mt-2 text-[10px] text-amber-500/70 flex items-center gap-1">
+                  <span>⚠</span> Demo: uploaded files are cleared after generation
+                </div>
+              )}
             </div>
 
             {/* Mine Section */}

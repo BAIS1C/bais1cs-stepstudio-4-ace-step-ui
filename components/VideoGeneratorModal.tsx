@@ -1,6 +1,6 @@
 import React, { useRef, useEffect, useState, useCallback } from 'react';
 import { Song } from '../types';
-import { X, Play, Pause, Download, Wand2, Image as ImageIcon, Music, Video, Loader2, Palette, Layers, Zap, Type, Monitor, Aperture, Activity, Circle, Grid, Box, BarChart2, Waves, Disc, Upload, Plus, Trash2, Settings2, MousePointer2, Search, ExternalLink, Sun, Film, Minus } from 'lucide-react';
+import { X, Play, Pause, Download, Wand2, Image as ImageIcon, Music, Video, Loader2, Palette, Layers, Zap, Type, Monitor, Aperture, Activity, Circle, Grid, Box, BarChart2, Waves, Disc, Upload, Plus, Trash2, Settings2, MousePointer2, Search, ExternalLink, Sun, Film, Minus, Eye, EyeOff, ChevronDown, ChevronRight } from 'lucide-react';
 import { FFmpeg } from '@ffmpeg/ffmpeg';
 import { fetchFile, toBlobURL } from '@ffmpeg/util';
 import { useResponsive } from '../context/ResponsiveContext';
@@ -64,6 +64,7 @@ interface TextLayer {
   size: number;
   color: string;
   font: string;
+  visible: boolean;
 }
 
 interface PexelsPhoto {
@@ -80,6 +81,11 @@ interface PexelsVideo {
 }
 
 const PRESETS: { id: PresetType; label: string; icon: React.ReactNode }[] = [
+  { id: 'Strands Particle', label: 'Strands', icon: <Disc size={16} /> },
+];
+
+// Hidden presets kept for potential future use
+const _HIDDEN_PRESETS: { id: PresetType; label: string; icon: React.ReactNode }[] = [
   { id: 'NCS Circle', label: 'Classic NCS', icon: <Circle size={16} /> },
   { id: 'Linear Bars', label: 'Spectrum', icon: <BarChart2 size={16} /> },
   { id: 'Dual Mirror', label: 'Mirror', icon: <ColumnsIcon /> },
@@ -90,7 +96,6 @@ const PRESETS: { id: PresetType; label: string; icon: React.ReactNode }[] = [
   { id: 'Digital Rain', label: 'Matrix', icon: <Grid size={16} /> },
   { id: 'Shockwave', label: 'Pulse', icon: <Aperture size={16} /> },
   { id: 'Minimal', label: 'Clean', icon: <Type size={16} /> },
-  { id: 'Strands Particle', label: 'Strands', icon: <Disc size={16} /> },
 ];
 
 function ColumnsIcon() {
@@ -155,7 +160,7 @@ export const VideoGeneratorModal: React.FC<VideoGeneratorModalProps> = ({ isOpen
 
   // Config State
   const [config, setConfig] = useState<VisualizerConfig>({
-    preset: 'NCS Circle',
+    preset: 'Strands Particle',
     primaryColor: '#00C2FF', // Pink-500
     secondaryColor: '#3b82f6', // Blue-500
     bgDim: 0.6,
@@ -201,8 +206,8 @@ export const VideoGeneratorModal: React.FC<VideoGeneratorModalProps> = ({ isOpen
   useEffect(() => {
     if (song) {
         setTextLayers([
-            { id: '1', text: song.title, x: 50, y: 85, size: 52, color: '#ffffff', font: 'Inter' },
-            { id: '2', text: song.style.toUpperCase(), x: 50, y: 92, size: 24, color: '#3b82f6', font: 'Inter' }
+            { id: '1', text: song.title, x: 50, y: 85, size: 52, color: '#ffffff', font: 'Inter', visible: true },
+            { id: '2', text: 'REPLACE WITH YOUR OWN TEXT', x: 50, y: 92, size: 24, color: '#3b82f6', font: 'Inter', visible: true }
         ]);
     }
   }, [song]);
@@ -671,23 +676,7 @@ export const VideoGeneratorModal: React.FC<VideoGeneratorModalProps> = ({ isOpen
 
       drawParticles(ctx, width, height, time, bass, currentConfig.particleCount, currentConfig.primaryColor);
 
-      if (['NCS Circle', 'Hexagon', 'Orbital', 'Shockwave'].includes(currentConfig.preset) && albumImage) {
-        // Draw album art inline with pre-loaded image
-        ctx.save();
-        ctx.translate(centerX, centerY);
-        ctx.scale(pulse, pulse);
-        ctx.shadowBlur = 40;
-        ctx.shadowColor = currentConfig.primaryColor;
-        ctx.beginPath();
-        ctx.arc(0, 0, 150, 0, Math.PI * 2);
-        ctx.closePath();
-        ctx.lineWidth = 5;
-        ctx.strokeStyle = 'white';
-        ctx.stroke();
-        ctx.clip();
-        ctx.drawImage(albumImage, -150, -150, 300, 300);
-        ctx.restore();
-      }
+      // Center image disabled — background only mode
 
       // Pixelate effect (applied before text so text stays sharp)
       if (currentEffects.pixelate) {
@@ -710,7 +699,7 @@ export const VideoGeneratorModal: React.FC<VideoGeneratorModalProps> = ({ isOpen
       ctx.shadowColor = 'black';
       ctx.textAlign = 'center';
 
-      currentTexts.forEach(layer => {
+      currentTexts.filter(layer => layer.visible !== false).forEach(layer => {
         ctx.fillStyle = layer.color;
         const dynamicSize = layer.id === '1' && currentConfig.preset === 'Minimal' ? layer.size * pulse : layer.size;
         ctx.font = `bold ${dynamicSize}px ${layer.font}, sans-serif`;
@@ -1181,7 +1170,7 @@ export const VideoGeneratorModal: React.FC<VideoGeneratorModalProps> = ({ isOpen
     ctx.shadowColor = 'black';
     ctx.textAlign = 'center';
 
-    currentTexts.forEach(layer => {
+    currentTexts.filter(layer => layer.visible !== false).forEach(layer => {
         ctx.fillStyle = layer.color;
         // Adjust font size by pulse for title-like layers if needed, here we do static or slight pulse
         const dynamicSize = layer.id === '1' && currentConfig.preset === 'Minimal' ? layer.size * pulse : layer.size;
@@ -1997,7 +1986,7 @@ export const VideoGeneratorModal: React.FC<VideoGeneratorModalProps> = ({ isOpen
   /**
    * Draw Strands Nation watermark — bottom-right corner of every frame.
    * Visible in both live preview and exported video.
-   * Logo + "strandnation.xyz" link text.
+   * Logo + "strandsnation.xyz" link text.
    */
   const drawStrandsWatermark = (ctx: CanvasRenderingContext2D, w: number, h: number) => {
     ctx.save();
@@ -2016,10 +2005,10 @@ export const VideoGeneratorModal: React.FC<VideoGeneratorModalProps> = ({ isOpen
     ctx.fillStyle = '#ffffff';
     ctx.fillText('STRANDS SOUNDS', w - margin, h - margin - linkFontSize - 4);
 
-    // "strandnation.xyz" link
+    // "strandsnation.xyz" link
     ctx.font = `${linkFontSize}px 'Rajdhani', 'Inter', sans-serif`;
     ctx.fillStyle = '#00C2FF';
-    ctx.fillText('strandnation.xyz', w - margin, h - margin);
+    ctx.fillText('strandsnation.xyz', w - margin, h - margin);
 
     ctx.restore();
   };
@@ -2032,7 +2021,8 @@ export const VideoGeneratorModal: React.FC<VideoGeneratorModalProps> = ({ isOpen
           y: 50,
           size: 40,
           color: '#ffffff',
-          font: 'Inter'
+          font: 'Inter',
+          visible: true
       };
       setTextLayers([...textLayers, newLayer]);
   };
@@ -2100,7 +2090,7 @@ export const VideoGeneratorModal: React.FC<VideoGeneratorModalProps> = ({ isOpen
                       <Video className="text-accent-500" size={20} />
                       Video Studio
                   </h2>
-                  <p className="text-zinc-500 text-xs">Create professional visualizers.</p>
+                  <p className="text-zinc-500 text-xs">Each layer compounds — Preset → Style → Text → FX all stack together.</p>
               </div>
             )}
 
@@ -2218,13 +2208,14 @@ export const VideoGeneratorModal: React.FC<VideoGeneratorModalProps> = ({ isOpen
                                         </div>
                                         <input
                                             type="text"
-                                            placeholder="Or paste video URL..."
+                                            placeholder="Paste video URL (MP4, WebM) or YouTube link..."
                                             value={videoUrl}
                                             onChange={(e) => setVideoUrl(e.target.value)}
                                             className="w-full bg-zinc-800 rounded px-3 py-2 text-xs text-white border border-white/10 placeholder-zinc-500"
                                         />
+                                        <p className="text-[10px] text-zinc-500">Direct video files (MP4/WebM) for background. YouTube links stored as reference.</p>
                                         {videoUrl && (
-                                            <p className="text-[10px] text-emerald-400 truncate">✓ Video loaded</p>
+                                            <p className="text-[10px] text-emerald-400 truncate">✓ {videoUrl.includes('youtube') || videoUrl.includes('youtu.be') ? 'YouTube link saved' : 'Video loaded'}</p>
                                         )}
                                     </div>
                                 )}
@@ -2329,53 +2320,7 @@ export const VideoGeneratorModal: React.FC<VideoGeneratorModalProps> = ({ isOpen
                             />
                         </div>
 
-                        {/* Center Image (Album Art) */}
-                        <div className="space-y-3">
-                            <label className="text-xs font-bold text-zinc-500 uppercase">Center Image</label>
-                            <div className="bg-black/20 p-3 rounded-lg border border-white/5 space-y-3">
-                                <div className="flex items-center gap-3">
-                                    {/* Preview */}
-                                    <div className="w-16 h-16 rounded-lg overflow-hidden bg-zinc-800 flex-shrink-0">
-                                        <img
-                                            src={customAlbumArt || song?.coverUrl || ''}
-                                            alt="Center"
-                                            className="w-full h-full object-cover"
-                                        />
-                                    </div>
-                                    <div className="flex-1 space-y-2">
-                                        <div className="grid grid-cols-2 gap-2">
-                                            <button
-                                                onClick={() => albumArtInputRef.current?.click()}
-                                                className="py-1.5 px-2 bg-zinc-700 hover:bg-zinc-600 rounded text-[10px] text-white flex items-center justify-center gap-1"
-                                            >
-                                                <Upload size={10}/> Upload
-                                            </button>
-                                            <button
-                                                onClick={() => openPexelsBrowser('albumArt')}
-                                                className="py-1.5 px-2 bg-emerald-600 hover:bg-emerald-700 rounded text-[10px] text-white flex items-center justify-center gap-1"
-                                            >
-                                                <Search size={10}/> Pexels
-                                            </button>
-                                        </div>
-                                        {customAlbumArt && (
-                                            <button
-                                                onClick={() => setCustomAlbumArt(null)}
-                                                className="w-full py-1 text-[10px] text-zinc-500 hover:text-red-400"
-                                            >
-                                                Reset to default
-                                            </button>
-                                        )}
-                                    </div>
-                                </div>
-                                <input
-                                    type="file"
-                                    ref={albumArtInputRef}
-                                    onChange={handleAlbumArtUpload}
-                                    className="hidden"
-                                    accept="image/*"
-                                />
-                            </div>
-                        </div>
+                        {/* Center Image removed — background only */}
                     </div>
                 )}
 
@@ -2391,40 +2336,51 @@ export const VideoGeneratorModal: React.FC<VideoGeneratorModalProps> = ({ isOpen
                         
                         <div className="space-y-3">
                             {textLayers.map((layer, index) => (
-                                <div key={layer.id} className="bg-black/20 p-3 rounded-lg border border-white/5 space-y-3">
-                                    <div className="flex items-center justify-between">
-                                        <span className="text-xs font-bold text-zinc-500">Layer {index + 1}</span>
-                                        <button onClick={() => removeTextLayer(layer.id)} className="text-zinc-500 hover:text-red-500">
-                                            <Trash2 size={14} />
-                                        </button>
+                                <div key={layer.id} className={`rounded-lg border transition-all ${layer.visible ? 'bg-black/20 border-white/5' : 'bg-black/10 border-white/3 opacity-60'}`}>
+                                    {/* Header row: checkbox + label + collapse chevron */}
+                                    <div className="flex items-center justify-between p-3 cursor-pointer" onClick={() => updateTextLayer(layer.id, { visible: !layer.visible })}>
+                                        <div className="flex items-center gap-2">
+                                            <div className={`w-4 h-4 rounded border flex items-center justify-center transition-colors ${layer.visible ? 'bg-accent-500 border-accent-500' : 'bg-zinc-800 border-zinc-600'}`}>
+                                                {layer.visible && <Eye size={10} className="text-white" />}
+                                                {!layer.visible && <EyeOff size={10} className="text-zinc-500" />}
+                                            </div>
+                                            <span className={`text-xs font-bold ${layer.visible ? 'text-zinc-300' : 'text-zinc-600'}`}>Layer {index + 1}</span>
+                                            <span className="text-[10px] text-zinc-600 truncate max-w-[120px]">{layer.text}</span>
+                                        </div>
+                                        {layer.visible ? <ChevronDown size={14} className="text-zinc-500" /> : <ChevronRight size={14} className="text-zinc-600" />}
                                     </div>
-                                    <input 
-                                        type="text" 
-                                        value={layer.text} 
-                                        onChange={(e) => updateTextLayer(layer.id, { text: e.target.value })}
-                                        className="w-full bg-zinc-800 rounded px-2 py-1 text-xs text-white border border-white/5"
-                                        placeholder="Text content"
-                                    />
-                                    <div className="grid grid-cols-2 gap-2">
-                                        <div>
-                                            <label className="text-[10px] text-zinc-500 block mb-1">X Position</label>
-                                            <input type="range" min="0" max="100" value={layer.x} onChange={(e) => updateTextLayer(layer.id, { x: parseInt(e.target.value) })} className="w-full accent-accent-500 h-1 bg-zinc-700 rounded-lg appearance-none" />
+                                    {/* Collapsible content — only shown when visible/active */}
+                                    {layer.visible && (
+                                        <div className="px-3 pb-3 space-y-3 animate-in fade-in slide-in-from-top-2">
+                                            <input
+                                                type="text"
+                                                value={layer.text}
+                                                onChange={(e) => updateTextLayer(layer.id, { text: e.target.value })}
+                                                className="w-full bg-zinc-800 rounded px-2 py-1 text-xs text-white border border-white/5"
+                                                placeholder="Text content"
+                                            />
+                                            <div className="grid grid-cols-2 gap-2">
+                                                <div>
+                                                    <label className="text-[10px] text-zinc-500 block mb-1">X Position</label>
+                                                    <input type="range" min="0" max="100" value={layer.x} onChange={(e) => updateTextLayer(layer.id, { x: parseInt(e.target.value) })} className="w-full accent-accent-500 h-1 bg-zinc-700 rounded-lg appearance-none" />
+                                                </div>
+                                                <div>
+                                                    <label className="text-[10px] text-zinc-500 block mb-1">Y Position</label>
+                                                    <input type="range" min="0" max="100" value={layer.y} onChange={(e) => updateTextLayer(layer.id, { y: parseInt(e.target.value) })} className="w-full accent-accent-500 h-1 bg-zinc-700 rounded-lg appearance-none" />
+                                                </div>
+                                            </div>
+                                            <div className="flex gap-2">
+                                                <div className="flex-1">
+                                                    <label className="text-[10px] text-zinc-500 block mb-1">Size</label>
+                                                    <input type="number" value={layer.size} onChange={(e) => updateTextLayer(layer.id, { size: parseInt(e.target.value) })} className="w-full bg-zinc-800 rounded px-2 py-1 text-xs text-white border border-white/5" />
+                                                </div>
+                                                <div>
+                                                    <label className="text-[10px] text-zinc-500 block mb-1">Color</label>
+                                                    <input type="color" value={layer.color} onChange={(e) => updateTextLayer(layer.id, { color: e.target.value })} className="w-8 h-6 rounded cursor-pointer border-none bg-transparent" />
+                                                </div>
+                                            </div>
                                         </div>
-                                        <div>
-                                            <label className="text-[10px] text-zinc-500 block mb-1">Y Position</label>
-                                            <input type="range" min="0" max="100" value={layer.y} onChange={(e) => updateTextLayer(layer.id, { y: parseInt(e.target.value) })} className="w-full accent-accent-500 h-1 bg-zinc-700 rounded-lg appearance-none" />
-                                        </div>
-                                    </div>
-                                    <div className="flex gap-2">
-                                        <div className="flex-1">
-                                            <label className="text-[10px] text-zinc-500 block mb-1">Size</label>
-                                            <input type="number" value={layer.size} onChange={(e) => updateTextLayer(layer.id, { size: parseInt(e.target.value) })} className="w-full bg-zinc-800 rounded px-2 py-1 text-xs text-white border border-white/5" />
-                                        </div>
-                                        <div>
-                                            <label className="text-[10px] text-zinc-500 block mb-1">Color</label>
-                                            <input type="color" value={layer.color} onChange={(e) => updateTextLayer(layer.id, { color: e.target.value })} className="w-8 h-6 rounded cursor-pointer border-none bg-transparent" />
-                                        </div>
-                                    </div>
+                                    )}
                                 </div>
                             ))}
                         </div>
@@ -2534,7 +2490,7 @@ export const VideoGeneratorModal: React.FC<VideoGeneratorModalProps> = ({ isOpen
                     </button>
                  )}
                  <p className="text-[10px] text-zinc-600 text-center">
-                   {ffmpegLoaded ? 'Encoder ready • ' : ''}Offline rendering - faster than real-time.
+                   {ffmpegLoaded ? 'Encoder ready • ' : ''}Do not close this window while rendering.
                  </p>
             </div>
         </div>

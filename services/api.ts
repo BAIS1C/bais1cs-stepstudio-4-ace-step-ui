@@ -1,13 +1,16 @@
-// Use relative URLs so Vite proxy handles them (enables LAN access)
-const API_BASE = '';
+// When embedded in Strands demoOS, route through the /api/soundwave proxy.
+// In standalone mode (Vite dev), use empty string so Vite proxy handles it.
+const API_BASE = typeof window !== 'undefined' && window.location.pathname.startsWith('/stepstudio')
+  ? '/api/soundwave'
+  : '';
 
 // Resolve audio URL based on storage type
 export function getAudioUrl(audioUrl: string | undefined | null, songId?: string): string | undefined {
   if (!audioUrl) return undefined;
 
-  // Local storage: already relative, works with proxy
+  // Local storage: route through proxy when embedded in demoOS
   if (audioUrl.startsWith('/audio/')) {
-    return audioUrl;
+    return API_BASE ? `${API_BASE}${audioUrl}` : audioUrl;
   }
 
   // Already a full URL

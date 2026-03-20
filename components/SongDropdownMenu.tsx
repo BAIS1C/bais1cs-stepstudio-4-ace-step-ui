@@ -3,7 +3,6 @@ import { Song } from '../types';
 import {
     Video,
     Edit3,
-    Layers,
     Repeat,
     ListPlus,
     Download,
@@ -20,7 +19,6 @@ interface SongDropdownMenuProps {
     direction?: 'up' | 'down';
     onCreateVideo?: () => void;
     onEditAudio?: () => void;
-    onExtractStems?: () => void;
     onReusePrompt?: () => void;
     onAddToPlaylist?: () => void;
     onDownload?: () => void;
@@ -65,7 +63,6 @@ export const SongDropdownMenu: React.FC<SongDropdownMenuProps> = ({
     direction = 'down',
     onCreateVideo,
     onEditAudio,
-    onExtractStems,
     onReusePrompt,
     onAddToPlaylist,
     onDownload,
@@ -112,19 +109,7 @@ export const SongDropdownMenu: React.FC<SongDropdownMenuProps> = ({
         const audioUrl = song.audioUrl.startsWith('http')
             ? song.audioUrl
             : `${window.location.origin}${song.audioUrl}`;
-        window.open(`/editor?audioUrl=${encodeURIComponent(audioUrl)}`, '_blank');
-        onClose();
-    };
-
-    const handleExtractStems = () => {
-        if (!song.audioUrl) return;
-        const baseUrl = window.location.port === '3000'
-            ? `${window.location.protocol}//${window.location.hostname}:3001`
-            : window.location.origin;
-        const audioUrl = song.audioUrl.startsWith('http')
-            ? song.audioUrl
-            : `${baseUrl}${song.audioUrl}`;
-        window.open(`${baseUrl}/demucs-web/?audioUrl=${encodeURIComponent(audioUrl)}`, '_blank');
+        window.open(`/stepstudio/editor/?audioUrl=${encodeURIComponent(audioUrl)}`, '_blank');
         onClose();
     };
 
@@ -180,11 +165,6 @@ export const SongDropdownMenu: React.FC<SongDropdownMenuProps> = ({
                     onClick={onEditAudio ? () => handleAction(onEditAudio) : handleEditAudio}
                 />
             )}
-            <MenuItem
-                icon={<Layers size={14} />}
-                label="Extract Stems"
-                onClick={onExtractStems ? () => handleAction(onExtractStems) : handleExtractStems}
-            />
             <MenuItem
                 icon={<Repeat size={14} />}
                 label="Reuse Prompt"

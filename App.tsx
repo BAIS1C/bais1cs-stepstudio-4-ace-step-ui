@@ -20,6 +20,33 @@ import { PlaylistDetail } from './components/PlaylistDetail';
 import { Toast, ToastType } from './components/Toast';
 import { SearchPage } from './components/SearchPage';
 
+/* ═══════════════════════════════════════════════════════════════
+   DEMO MODE — detected when embedded in Strands demoOS
+   Prepopulates the library with Strands soundtracks and shows
+   demo mode indicators for temporary storage.
+   ═══════════════════════════════════════════════════════════════ */
+const IS_DEMO = typeof window !== 'undefined' && (
+  window.location.pathname.startsWith('/stepstudio') ||
+  window.parent !== window // iframe
+);
+
+const STRANDS_DEMO_TRACKS: Song[] = [
+  { id: 'strands-01', title: 'Aaah-Hole (K.A.R.R.S ARABESQUE PROG MIX)', lyrics: '', style: 'Progressive Electronic', audioUrl: '/audio/soundtrack/Aaah-Hole.mp3', coverUrl: '', duration: '4:20', createdAt: new Date('2026-01-01'), tags: ['strands', 'prog'], isPublic: true, likeCount: 42, viewCount: 120, creator: 'SpacemanTheDJ' },
+  { id: 'strands-02', title: 'Dot dot dot! (National Lumpinis Squeak Mix)', lyrics: '', style: 'Experimental', audioUrl: '/audio/soundtrack/Dash Dot.mp3', coverUrl: '', duration: '3:45', createdAt: new Date('2026-01-02'), tags: ['strands', 'morse'], isPublic: true, likeCount: 38, viewCount: 95, creator: 'SpacemanTheDJ' },
+  { id: 'strands-03', title: 'Hack the Lie (NIN Compoop mix)', lyrics: '', style: 'Industrial', audioUrl: '/audio/soundtrack/Hack the Lie.mp3', coverUrl: '', duration: '4:10', createdAt: new Date('2026-01-03'), tags: ['strands', 'industrial'], isPublic: true, likeCount: 56, viewCount: 180, creator: 'SpacemanTheDJ' },
+  { id: 'strands-04', title: 'Dot dot dot! (Looks Eastern Euro I like Mix)', lyrics: '', style: 'Eastern Electronic', audioUrl: '/audio/soundtrack/Nation.mp3', coverUrl: '', duration: '3:55', createdAt: new Date('2026-01-04'), tags: ['strands', 'eastern'], isPublic: true, likeCount: 33, viewCount: 88, creator: 'SpacemanTheDJ' },
+  { id: 'strands-05', title: 'Noisy Nation (Dot Dot Dash Mix)', lyrics: '', style: 'Noise Electronic', audioUrl: '/audio/soundtrack/Noisy Nation (dash dot mix).mp3', coverUrl: '', duration: '3:30', createdAt: new Date('2026-01-05'), tags: ['strands', 'noise'], isPublic: true, likeCount: 29, viewCount: 72, creator: 'SpacemanTheDJ' },
+  { id: 'strands-06', title: 'Nya Nya Strands Bed Remix', lyrics: '', style: 'Ambient', audioUrl: '/audio/soundtrack/Nya Nya Strands Bed Remix.mp3', coverUrl: '', duration: '5:00', createdAt: new Date('2026-01-06'), tags: ['strands', 'ambient'], isPublic: true, likeCount: 45, viewCount: 134, creator: 'SpacemanTheDJ' },
+  { id: 'strands-07', title: 'Drift Away (Dawns Fender Bender Mix)', lyrics: '', style: 'Chill Electronic', audioUrl: '/audio/soundtrack/Strands Drift Away.mp3', coverUrl: '', duration: '4:30', createdAt: new Date('2026-01-07'), tags: ['strands', 'chill'], isPublic: true, likeCount: 67, viewCount: 210, creator: 'SpacemanTheDJ' },
+  { id: 'strands-08', title: 'Strands Investigation Bed', lyrics: '', style: 'Soundtrack', audioUrl: '/audio/soundtrack/Strands Investigation Bed.mp3', coverUrl: '', duration: '3:20', createdAt: new Date('2026-01-08'), tags: ['strands', 'soundtrack'], isPublic: true, likeCount: 24, viewCount: 65, creator: 'SpacemanTheDJ' },
+  { id: 'strands-09', title: 'XYZ (Scatty XYZ miix)', lyrics: '', style: 'Game Theme', audioUrl: '/audio/soundtrack/Strands The Game (Scatty mcMuffin Mix) - Spaceman The DJ.mp3', coverUrl: '', duration: '4:45', createdAt: new Date('2026-01-09'), tags: ['strands', 'game'], isPublic: true, likeCount: 51, viewCount: 155, creator: 'SpacemanTheDJ' },
+  { id: 'strands-10', title: 'XG Tweak Something Aint Wuxia', lyrics: '', style: 'Wuxia Electronic', audioUrl: '/audio/soundtrack/Strands Theme (XG Tweak Something Aint Wuxia Mix).mp3', coverUrl: '', duration: '4:15', createdAt: new Date('2026-01-10'), tags: ['strands', 'wuxia'], isPublic: true, likeCount: 39, viewCount: 108, creator: 'SpacemanTheDJ' },
+  { id: 'strands-11', title: 'StrandsnationXYZ (Spelling Bee Mix)', lyrics: '', style: 'Synthpop', audioUrl: '/audio/soundtrack/StrandsnationXYZ (Spelling Bee Mix).mp3', coverUrl: '', duration: '3:50', createdAt: new Date('2026-01-11'), tags: ['strands', 'synthpop'], isPublic: true, likeCount: 31, viewCount: 82, creator: 'SpacemanTheDJ' },
+  { id: 'strands-12', title: 'Yeah! (Ron Hubbard was a Badass Mix)', lyrics: '', style: 'Synthwave', audioUrl: '/audio/soundtrack/StrandsnationXYZ (Synthwave Morse Mix).mp3', coverUrl: '', duration: '4:00', createdAt: new Date('2026-01-12'), tags: ['strands', 'synthwave'], isPublic: true, likeCount: 48, viewCount: 142, creator: 'SpacemanTheDJ' },
+  { id: 'strands-13', title: 'Together (Prog Remix)', lyrics: '', style: 'Progressive', audioUrl: '/audio/soundtrack/Together (Remix).mp3', coverUrl: '', duration: '5:15', createdAt: new Date('2026-01-13'), tags: ['strands', 'prog'], isPublic: true, likeCount: 73, viewCount: 245, creator: 'SpacemanTheDJ' },
+  { id: 'strands-14', title: 'Wakawakawaka Phonky', lyrics: '', style: 'Phonk', audioUrl: '/audio/soundtrack/Wakawakawaka Phonky.mp3', coverUrl: '', duration: '3:15', createdAt: new Date('2026-01-14'), tags: ['strands', 'phonk'], isPublic: true, likeCount: 35, viewCount: 97, creator: 'SpacemanTheDJ' },
+  { id: 'strands-15', title: 'Strands Theme (Run it Mother f&cker Mix)', lyrics: '', style: 'Breakbeat', audioUrl: '/audio/soundtrack/who is god and why did yu do this.mp3', coverUrl: '', duration: '4:05', createdAt: new Date('2026-01-15'), tags: ['strands', 'breakbeat'], isPublic: true, likeCount: 62, viewCount: 198, creator: 'SpacemanTheDJ' },
+];
 
 export default function App() {
   // Responsive
@@ -119,6 +146,10 @@ export default function App() {
   useEffect(() => {
     if (!authLoading && !isAuthenticated) {
       setShowUsernameModal(true);
+      // In demo mode, seed the library even before auth
+      if (IS_DEMO && songs.length === 0) {
+        setSongs(STRANDS_DEMO_TRACKS);
+      }
     }
   }, [authLoading, isAuthenticated]);
 
@@ -289,6 +320,13 @@ export default function App() {
         const songsMap = new Map<string, Song>();
         [...mySongs, ...likedSongs].forEach(s => songsMap.set(s.id, s));
 
+        // In demo mode, merge Strands soundtrack as seed library
+        if (IS_DEMO) {
+          STRANDS_DEMO_TRACKS.forEach(t => {
+            if (!songsMap.has(t.id)) songsMap.set(t.id, t);
+          });
+        }
+
         // Preserve any generating songs (temp songs)
         setSongs(prev => {
           const generatingSongs = prev.filter(s => s.isGenerating);
@@ -301,6 +339,13 @@ export default function App() {
 
       } catch (error) {
         console.error('Failed to load songs:', error);
+        // In demo mode, seed with Strands soundtrack even if API fails
+        if (IS_DEMO) {
+          setSongs(prev => {
+            const generatingSongs = prev.filter(s => s.isGenerating);
+            return [...generatingSongs, ...STRANDS_DEMO_TRACKS];
+          });
+        }
       }
     };
 
@@ -879,6 +924,83 @@ export default function App() {
     setShowUsernameModal(false);
   };
 
+  /* ═══════════════════════════════════════════════════════════════
+     VIDEO STUDIO UPLOADER — Local use only. Upload an audio file
+     and open the video generator directly, no song record needed.
+     ═══════════════════════════════════════════════════════════════ */
+  const VideoStudioUploader = ({ onOpenVideoForSong }: { onOpenVideoForSong: (song: Song) => void }) => {
+    const [dragOver, setDragOver] = React.useState(false);
+    const fileInputRef = React.useRef<HTMLInputElement>(null);
+
+    const handleFile = (file: File) => {
+      if (!file.type.startsWith('audio/') && !file.name.match(/\.(mp3|wav|flac|ogg|m4a|aac)$/i)) {
+        return;
+      }
+      const blobUrl = URL.createObjectURL(file);
+      const tempSong: Song = {
+        id: `upload-${Date.now()}`,
+        title: file.name.replace(/\.[^.]+$/, ''),
+        lyrics: '',
+        style: 'Uploaded',
+        coverUrl: '',
+        duration: '0:00',
+        createdAt: new Date(),
+        tags: ['uploaded'],
+        audioUrl: blobUrl,
+        isPublic: false,
+      };
+      onOpenVideoForSong(tempSong);
+    };
+
+    return (
+      <div className="flex-1 flex flex-col items-center justify-center p-8 bg-white dark:bg-suno-DEFAULT transition-colors duration-300">
+        <div className="max-w-md w-full text-center space-y-6">
+          <div className="text-4xl">🎬</div>
+          <h1 className="text-2xl font-bold text-zinc-900 dark:text-white" style={{ fontFamily: "'Orbitron', sans-serif" }}>
+            VIDEO STUDIO
+          </h1>
+          <p className="text-sm text-zinc-500 dark:text-zinc-400">
+            Upload an audio file to create a music video with visualizers, effects, and your custom presets.
+          </p>
+
+          <div
+            onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
+            onDragLeave={() => setDragOver(false)}
+            onDrop={(e) => { e.preventDefault(); setDragOver(false); const f = e.dataTransfer.files[0]; if (f) handleFile(f); }}
+            onClick={() => fileInputRef.current?.click()}
+            className={`
+              border-2 border-dashed rounded-2xl p-10 cursor-pointer transition-all
+              ${dragOver
+                ? 'border-accent-500 bg-accent-500/10 scale-[1.02]'
+                : 'border-zinc-300 dark:border-white/20 bg-zinc-50 dark:bg-white/5 hover:border-accent-400 dark:hover:border-accent-500/50 hover:bg-zinc-100 dark:hover:bg-white/10'}
+            `}
+          >
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept=".mp3,.wav,.flac,.ogg,.m4a,.aac,audio/*"
+              className="hidden"
+              onChange={(e) => { const f = e.target.files?.[0]; if (f) handleFile(f); e.target.value = ''; }}
+            />
+            <div className="space-y-3">
+              <div className="text-3xl">📂</div>
+              <div className="text-sm font-medium text-zinc-700 dark:text-zinc-200">
+                {dragOver ? 'Drop it here' : 'Drag & drop audio file'}
+              </div>
+              <div className="text-xs text-zinc-400">
+                or click to browse · MP3, WAV, FLAC, OGG, M4A
+              </div>
+            </div>
+          </div>
+
+          <p className="text-[10px] text-zinc-400 dark:text-zinc-500">
+            Video is rendered in-browser using WebAssembly FFmpeg. Nothing is uploaded to any server.
+          </p>
+        </div>
+      </div>
+    );
+  };
+
   // Render Layout Logic
   const renderContent = () => {
     switch (currentView) {
@@ -953,6 +1075,9 @@ export default function App() {
             onNavigateToPlaylist={handleNavigateToPlaylist}
           />
         );
+
+      case 'video-studio':
+        return <VideoStudioUploader onOpenVideoForSong={(song) => { setSongForVideo(song); setIsVideoModalOpen(true); }} />;
 
       case 'create':
       default:
@@ -1034,6 +1159,16 @@ export default function App() {
 
   return (
     <div className="flex flex-col h-screen bg-white dark:bg-suno-DEFAULT text-zinc-900 dark:text-white font-sans antialiased selection:bg-accent-500/30 transition-colors duration-300">
+      {IS_DEMO && (
+        <div className="flex items-center justify-center gap-3 px-4 py-1.5 text-[11px] tracking-wider font-medium"
+          style={{ background: 'linear-gradient(90deg, rgba(0,194,255,0.08), rgba(139,92,246,0.08), rgba(240,0,184,0.08))', borderBottom: '1px solid rgba(0,194,255,0.12)', color: '#a0aec0' }}>
+          <span style={{ color: '#00C2FF' }}>DEMO MODE</span>
+          <span>·</span>
+          <span>Uploads cleared after generation</span>
+          <span>·</span>
+          <span>Max 30s · 5 gens/hour</span>
+        </div>
+      )}
       <div className="flex-1 flex overflow-hidden">
         <Sidebar
           currentView={currentView}
