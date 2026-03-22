@@ -82,10 +82,6 @@ interface PexelsVideo {
 
 const PRESETS: { id: PresetType; label: string; icon: React.ReactNode }[] = [
   { id: 'Strands Particle', label: 'Strands', icon: <Disc size={16} /> },
-];
-
-// Hidden presets kept for potential future use
-const _HIDDEN_PRESETS: { id: PresetType; label: string; icon: React.ReactNode }[] = [
   { id: 'NCS Circle', label: 'Classic NCS', icon: <Circle size={16} /> },
   { id: 'Linear Bars', label: 'Spectrum', icon: <BarChart2 size={16} /> },
   { id: 'Dual Mirror', label: 'Mirror', icon: <ColumnsIcon /> },
@@ -158,6 +154,15 @@ export const VideoGeneratorModal: React.FC<VideoGeneratorModalProps> = ({ isOpen
   const [ffmpegLoaded, setFfmpegLoaded] = useState(false);
   const [ffmpegLoading, setFfmpegLoading] = useState(false);
 
+  // GPU Encoder State (local sidecar on port 9877)
+  const [gpuEncoderAvailable, setGpuEncoderAvailable] = useState(false);
+  const [gpuEncoderInfo, setGpuEncoderInfo] = useState<{ encoder: string; label: string; gpu: string | null; hardware: boolean } | null>(null);
+  const gpuWsRef = useRef<WebSocket | null>(null);
+
+  // Local system fonts (populated via queryLocalFonts API)
+  const [systemFonts, setSystemFonts] = useState<string[]>([]);
+  const [fontsLoaded, setFontsLoaded] = useState(false);
+
   // Config State
   const [config, setConfig] = useState<VisualizerConfig>({
     preset: 'Strands Particle',
@@ -201,6 +206,7 @@ export const VideoGeneratorModal: React.FC<VideoGeneratorModalProps> = ({ isOpen
 
   // Text Layers State
   const [textLayers, setTextLayers] = useState<TextLayer[]>([]);
+  const [showWatermark, setShowWatermark] = useState(true);
 
   // Init default text on load
   useEffect(() => {
@@ -217,11 +223,82 @@ export const VideoGeneratorModal: React.FC<VideoGeneratorModalProps> = ({ isOpen
   const effectsRef = useRef(effects);
   const intensitiesRef = useRef(intensities);
   const textLayersRef = useRef(textLayers);
+  const showWatermarkRef = useRef(showWatermark);
 
   useEffect(() => { configRef.current = config; }, [config]);
   useEffect(() => { effectsRef.current = effects; }, [effects]);
   useEffect(() => { intensitiesRef.current = intensities; }, [intensities]);
   useEffect(() => { textLayersRef.current = textLayers; }, [textLayers]);
+  useEffect(() => { showWatermarkRef.current = showWatermark; }, [showWatermark]);
+
+  // ── Detect local GPU encoder sidecar (port 9877) ──
+  useEffect(() => {
+    if (!isOpen) return;
+    const controller = new AbortController();
+    const checkGpuEncoder = async () => {
+      try {
+        const res = await fetch('http://127.0.0.1:9877/health', {
+          signal: controller.signal,
+          // 2s timeout via AbortController
+        });
+        if (res.ok) {
+          const data = await res.json();
+          setGpuEncoderAvailable(true);
+          setGpuEncoderInfo({
+            encoder: data.encoder,
+            label: data.label,
+            gpu: data.gpu,
+            hardware: data.hardware,
+          });
+          console.log('[Video Studio] GPU encoder detected:', data.label, data.encoder, data.gpu || '');
+        }
+      } catch {
+        // Sidecar not running — fall back to WASM
+        setGpuEncoderAvailable(false);
+        setGpuEncoderInfo(null);
+        console.log('[Video Studio] No local GPU encoder detected, using WASM fallback');
+      }
+    };
+    checkGpuEncoder();
+    // Timeout the health check after 2 seconds
+    const timeout = setTimeout(() => controller.abort(), 2000);
+    return () => { controller.abort(); clearTimeout(timeout); };
+  }, [isOpen]);
+
+  // ── Load local system fonts via queryLocalFonts API (Chromium only) ──
+  useEffect(() => {
+    if (!isOpen || fontsLoaded) return;
+    const loadFonts = async () => {
+      try {
+        // queryLocalFonts requires user gesture the first time (browser will prompt permission)
+        if ('queryLocalFonts' in window) {
+          const fonts = await (window as unknown as { queryLocalFonts: () => Promise<{ family: string }[]> }).queryLocalFonts();
+          // Deduplicate font families and sort
+          const families = [...new Set(fonts.map((f: { family: string }) => f.family))].sort();
+          console.log(`[Video Studio] Loaded ${families.length} local fonts`);
+          setSystemFonts(families);
+          setFontsLoaded(true);
+        } else {
+          // Fallback: common fonts for non-Chromium browsers
+          setSystemFonts([
+            'Arial', 'Arial Black', 'Calibri', 'Cambria', 'Comic Sans MS', 'Consolas',
+            'Courier New', 'Georgia', 'Impact', 'Inter', 'Lucida Console', 'Palatino Linotype',
+            'Rajdhani', 'Segoe UI', 'Tahoma', 'Times New Roman', 'Trebuchet MS', 'Verdana',
+          ]);
+          setFontsLoaded(true);
+        }
+      } catch (err) {
+        console.log('[Video Studio] Font access denied or unavailable, using defaults');
+        setSystemFonts([
+          'Arial', 'Arial Black', 'Calibri', 'Comic Sans MS', 'Consolas',
+          'Courier New', 'Georgia', 'Impact', 'Inter', 'Rajdhani',
+          'Segoe UI', 'Tahoma', 'Times New Roman', 'Trebuchet MS', 'Verdana',
+        ]);
+        setFontsLoaded(true);
+      }
+    };
+    loadFonts();
+  }, [isOpen, fontsLoaded]);
 
   // Load FFmpeg
   const loadFFmpeg = useCallback(async () => {
@@ -390,18 +467,24 @@ export const VideoGeneratorModal: React.FC<VideoGeneratorModalProps> = ({ isOpen
   const startRecording = async () => {
     if (!canvasRef.current || !song) return;
 
-    // Load FFmpeg if not loaded
-    if (!ffmpegRef.current) {
-      await loadFFmpeg();
-      if (!ffmpegRef.current) return;
-    }
-
     setIsExporting(true);
     setExportStage('capturing');
     setExportProgress(0);
 
     try {
-      await renderOffline();
+      if (gpuEncoderAvailable) {
+        // Route to local GPU encoder sidecar
+        console.log('[Video Studio] Using local GPU encoder');
+        await renderViaGpu();
+      } else {
+        // Fallback to WASM FFmpeg
+        console.log('[Video Studio] Using WASM FFmpeg');
+        if (!ffmpegRef.current) {
+          await loadFFmpeg();
+          if (!ffmpegRef.current) return;
+        }
+        await renderOffline();
+      }
     } catch (error) {
       console.error('Rendering failed:', error);
       alert('Video rendering failed. Please try again.');
@@ -708,8 +791,8 @@ export const VideoGeneratorModal: React.FC<VideoGeneratorModalProps> = ({ isOpen
         ctx.fillText(layer.text, xPos, yPos);
       });
 
-      // Strands watermark — bottom-right of every exported frame
-      drawStrandsWatermark(ctx, width, height);
+      // Strands watermark — bottom-right (toggleable)
+      if (showWatermarkRef.current) drawStrandsWatermark(ctx, width, height);
 
       ctx.restore();
 
@@ -907,6 +990,341 @@ export const VideoGeneratorModal: React.FC<VideoGeneratorModalProps> = ({ isOpen
   const stopRecording = () => {
     // For offline rendering, we can't really stop mid-process
     // This is kept for compatibility but offline render runs to completion
+  };
+
+  // ── GPU Encode via local sidecar (WebSocket frame streaming) ──
+  const renderViaGpu = async () => {
+    if (!song || !canvasRef.current) return;
+
+    // Create offline canvas (same as WASM path)
+    const canvas = document.createElement('canvas');
+    canvas.width = 1920;
+    canvas.height = 1080;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    const fps = 30;
+    const width = canvas.width;
+    const height = canvas.height;
+    const centerX = width / 2;
+    const centerY = height / 2;
+
+    setExportProgress(1);
+
+    // Fetch audio as ArrayBuffer
+    console.log('[GPU Encode] Fetching audio...');
+    const audioResponse = await fetch(song.audioUrl || '');
+    const audioData = await audioResponse.arrayBuffer();
+    const audioDataCopy = audioData.slice(0);
+
+    // Decode audio for FFT analysis
+    const audioCtx = new (window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext)();
+    const audioBuffer = await audioCtx.decodeAudioData(audioData);
+    const duration = audioBuffer.duration;
+    const totalFrames = Math.ceil(duration * fps);
+
+    console.log(`[GPU Encode] Audio: ${duration.toFixed(1)}s, ${totalFrames} frames`);
+
+    // Analyze audio offline
+    setExportProgress(5);
+    const frequencyDataFrames = await analyzeAudioOffline(audioBuffer, fps);
+
+    // Pre-load images (same as WASM path)
+    let bgImage: HTMLImageElement | null = null;
+    let bgVideo: HTMLVideoElement | null = null;
+
+    if (backgroundType === 'video' && videoUrl) {
+      bgVideo = document.createElement('video');
+      bgVideo.crossOrigin = 'anonymous';
+      bgVideo.src = videoUrl;
+      bgVideo.muted = true;
+      bgVideo.playsInline = true;
+      await new Promise<void>((resolve) => {
+        bgVideo!.onloadeddata = () => resolve();
+        bgVideo!.onerror = () => { bgVideo = null; resolve(); };
+      });
+    }
+
+    if (!bgVideo) {
+      let bgImageUrl: string | null = null;
+      if (backgroundType === 'custom' && customImage) {
+        bgImageUrl = customImage;
+      } else {
+        bgImageUrl = await loadImageAsDataUrl(`https://picsum.photos/seed/${backgroundSeed}/1920/1080?blur=4`);
+      }
+      if (bgImageUrl) {
+        bgImage = new Image();
+        bgImage.crossOrigin = 'anonymous';
+        bgImage.src = bgImageUrl;
+        await new Promise<void>((resolve) => {
+          bgImage!.onload = () => resolve();
+          bgImage!.onerror = () => { bgImage = null; resolve(); };
+        });
+      }
+    }
+
+    setExportProgress(10);
+
+    // ── Open WebSocket to local encoder ──
+    console.log('[GPU Encode] Connecting to local encoder...');
+    const ws = new WebSocket('ws://127.0.0.1:9877/encode');
+    gpuWsRef.current = ws;
+
+    await new Promise<void>((resolve, reject) => {
+      ws.onopen = () => resolve();
+      ws.onerror = () => reject(new Error('Failed to connect to GPU encoder'));
+      setTimeout(() => reject(new Error('WebSocket connection timeout')), 5000);
+    });
+
+    // Init session
+    ws.send(JSON.stringify({ type: 'init', fps, width, height, totalFrames }));
+
+    // Wait for session acknowledgment
+    const sessionId = await new Promise<string>((resolve, reject) => {
+      const handler = (event: MessageEvent) => {
+        const msg = JSON.parse(event.data);
+        if (msg.type === 'session') {
+          ws.removeEventListener('message', handler);
+          resolve(msg.sessionId);
+        } else if (msg.type === 'error') {
+          ws.removeEventListener('message', handler);
+          reject(new Error(msg.message));
+        }
+      };
+      ws.addEventListener('message', handler);
+    });
+
+    console.log(`[GPU Encode] Session: ${sessionId.slice(0, 8)}`);
+
+    // Send audio as chunked base64 — String.fromCharCode blows the stack on large arrays
+    const audioBytes = new Uint8Array(audioDataCopy);
+    const chunkSize = 32768;
+    let audioStr = '';
+    for (let i = 0; i < audioBytes.length; i += chunkSize) {
+      const chunk = audioBytes.subarray(i, Math.min(i + chunkSize, audioBytes.length));
+      audioStr += String.fromCharCode.apply(null, Array.from(chunk));
+    }
+    const audioBase64 = btoa(audioStr);
+    ws.send(JSON.stringify({ type: 'audio', data: audioBase64 }));
+
+    // Wait for audio acknowledgment
+    await new Promise<void>((resolve) => {
+      const handler = (event: MessageEvent) => {
+        const msg = JSON.parse(event.data);
+        if (msg.type === 'audio_received') {
+          ws.removeEventListener('message', handler);
+          resolve();
+        }
+      };
+      ws.addEventListener('message', handler);
+    });
+
+    // Start FFmpeg on the sidecar
+    ws.send(JSON.stringify({ type: 'start', fps, width, height }));
+
+    // Wait for ready signal
+    await new Promise<void>((resolve) => {
+      const handler = (event: MessageEvent) => {
+        const msg = JSON.parse(event.data);
+        if (msg.type === 'ready') {
+          ws.removeEventListener('message', handler);
+          resolve();
+        }
+      };
+      ws.addEventListener('message', handler);
+    });
+
+    setExportStage('capturing');
+    setExportProgress(15);
+
+    // ── Render frames and stream to sidecar ──
+    const currentConfig = configRef.current;
+    const currentEffects = effectsRef.current;
+    const currentIntensities = intensitiesRef.current;
+    const currentTexts = textLayersRef.current;
+
+    for (let frameIndex = 0; frameIndex < totalFrames; frameIndex++) {
+      const time = frameIndex / fps;
+      const dataArray = frequencyDataFrames[Math.min(frameIndex, frequencyDataFrames.length - 1)];
+
+      // --- Same rendering logic as renderOffline ---
+      // (draw background, preset, effects, text, watermark)
+      ctx.save();
+      ctx.clearRect(0, 0, width, height);
+
+      // Background
+      if (bgVideo) {
+        const seekTime = time % (bgVideo.duration || 1);
+        bgVideo.currentTime = seekTime;
+        ctx.drawImage(bgVideo, 0, 0, width, height);
+      } else if (bgImage) {
+        ctx.drawImage(bgImage, 0, 0, width, height);
+      } else {
+        ctx.fillStyle = '#0a0a0a';
+        ctx.fillRect(0, 0, width, height);
+      }
+
+      // Dimming
+      ctx.fillStyle = `rgba(0,0,0,${currentConfig.bgDim})`;
+      ctx.fillRect(0, 0, width, height);
+
+      // Get audio metrics
+      let bass = 0;
+      for (let i = 0; i < 10; i++) bass += dataArray[i] || 0;
+      bass /= 10;
+      const normBass = bass / 255;
+      const pulse = 1 + normBass * 0.15;
+
+      // Draw active preset (reuse existing draw functions)
+      // Synthesize time-domain waveform for Oscilloscope preset
+      const timeDomain = new Uint8Array(1024);
+      for (let i = 0; i < timeDomain.length; i++) {
+        timeDomain[i] = 128 + Math.sin(i * 0.1 + time * 10) * 64 * normBass;
+      }
+
+      switch (currentConfig.preset) {
+        case 'NCS Circle':
+          drawNCSCircle(ctx, centerX, centerY, dataArray, pulse, time, currentConfig.primaryColor, currentConfig.secondaryColor);
+          break;
+        case 'Linear Bars':
+          drawLinearBars(ctx, width, height, dataArray, currentConfig.primaryColor, currentConfig.secondaryColor);
+          break;
+        case 'Dual Mirror':
+          drawDualMirror(ctx, width, height, dataArray, currentConfig.primaryColor);
+          break;
+        case 'Center Wave':
+          drawCenterWave(ctx, centerX, centerY, dataArray, time, currentConfig.primaryColor);
+          break;
+        case 'Orbital':
+          drawOrbital(ctx, centerX, centerY, dataArray, time, currentConfig.primaryColor, currentConfig.secondaryColor);
+          break;
+        case 'Hexagon':
+          drawHexagon(ctx, centerX, centerY, dataArray, pulse, time, currentConfig.primaryColor);
+          break;
+        case 'Oscilloscope':
+          drawOscilloscope(ctx, width, height, timeDomain, currentConfig.primaryColor);
+          break;
+        case 'Digital Rain':
+          drawDigitalRain(ctx, width, height, dataArray, time, currentConfig.primaryColor);
+          break;
+        case 'Shockwave':
+          drawShockwave(ctx, centerX, centerY, bass, time, currentConfig.primaryColor);
+          break;
+        case 'Strands Particle':
+          drawStrandsParticle(ctx, centerX, centerY, width, height, normBass, time, 1 / fps);
+          break;
+        case 'Minimal':
+        default:
+          break;
+      }
+
+      drawParticles(ctx, width, height, time, bass, currentConfig.particleCount, currentConfig.primaryColor);
+
+      // Effects (same as renderOffline)
+      if (currentEffects.pixelate) {
+        const pixelSize = Math.max(4, Math.floor(16 * currentIntensities.pixelate));
+        ctx.imageSmoothingEnabled = false;
+        const tempCanvas2 = document.createElement('canvas');
+        const smallW = Math.floor(width / pixelSize);
+        const smallH = Math.floor(height / pixelSize);
+        tempCanvas2.width = smallW;
+        tempCanvas2.height = smallH;
+        const tempCtx2 = tempCanvas2.getContext('2d')!;
+        tempCtx2.drawImage(canvas, 0, 0, smallW, smallH);
+        ctx.clearRect(0, 0, width, height);
+        ctx.drawImage(tempCanvas2, 0, 0, smallW, smallH, 0, 0, width, height);
+        ctx.imageSmoothingEnabled = true;
+      }
+
+      // Text layers
+      ctx.shadowBlur = 10;
+      ctx.shadowColor = 'black';
+      ctx.textAlign = 'center';
+      currentTexts.filter(layer => layer.visible !== false).forEach(layer => {
+        ctx.fillStyle = layer.color;
+        const dynamicSize = layer.id === '1' && currentConfig.preset === 'Minimal' ? layer.size * pulse : layer.size;
+        ctx.font = `bold ${dynamicSize}px ${layer.font}, sans-serif`;
+        const xPos = (layer.x / 100) * width;
+        const yPos = (layer.y / 100) * height;
+        ctx.fillText(layer.text, xPos, yPos);
+      });
+
+      if (showWatermarkRef.current) drawStrandsWatermark(ctx, width, height);
+      ctx.restore();
+
+      // Post-processing effects
+      if (currentEffects.scanlines || currentEffects.cctv) {
+        ctx.fillStyle = `rgba(0,0,0,${currentIntensities.scanlines * 0.8})`;
+        for (let i = 0; i < height; i += 4) ctx.fillRect(0, i, width, 2);
+      }
+      if (currentEffects.letterbox) {
+        const barHeight = height * 0.12 * currentIntensities.letterbox;
+        ctx.fillStyle = 'black';
+        ctx.fillRect(0, 0, width, barHeight);
+        ctx.fillRect(0, height - barHeight, width, barHeight);
+      }
+
+      // Capture frame as JPEG and send over WebSocket
+      const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, 'image/jpeg', 0.85));
+      if (blob) {
+        const arrayBuf = await blob.arrayBuffer();
+        ws.send(arrayBuf);
+      }
+
+      // Update progress (15-70% for frame rendering)
+      if (frameIndex % 10 === 0) {
+        setExportProgress(15 + Math.round((frameIndex / totalFrames) * 55));
+      }
+    }
+
+    // Signal end of frames
+    ws.send(JSON.stringify({ type: 'end' }));
+    setExportStage('encoding');
+    setExportProgress(70);
+
+    // ── Wait for completion ──
+    const downloadUrl = await new Promise<string>((resolve, reject) => {
+      const handler = (event: MessageEvent) => {
+        const msg = JSON.parse(event.data);
+        if (msg.type === 'progress' && msg.stage === 'encoding') {
+          setExportProgress(70 + Math.round(msg.progress * 25));
+        } else if (msg.type === 'complete') {
+          ws.removeEventListener('message', handler);
+          resolve(msg.downloadUrl);
+        } else if (msg.type === 'error') {
+          ws.removeEventListener('message', handler);
+          reject(new Error(msg.message));
+        }
+      };
+      ws.addEventListener('message', handler);
+    });
+
+    setExportProgress(95);
+
+    // Download the MP4 from sidecar
+    console.log(`[GPU Encode] Downloading from ${downloadUrl}`);
+    const mp4Response = await fetch(`http://127.0.0.1:9877${downloadUrl}`);
+    const mp4Blob = await mp4Response.blob();
+
+    const url = URL.createObjectURL(mp4Blob);
+    const a = document.createElement('a');
+    a.style.display = 'none';
+    a.href = url;
+    a.download = `${song.title || 'strands-sounds'}.mp4`;
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(() => { document.body.removeChild(a); URL.revokeObjectURL(url); }, 1000);
+
+    console.log('[GPU Encode] Download triggered!');
+    await audioCtx.close();
+    ws.close();
+    gpuWsRef.current = null;
+
+    setExportProgress(100);
+    setTimeout(() => {
+      setIsExporting(false);
+      setExportStage('idle');
+    }, 500);
   };
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -1182,8 +1600,8 @@ export const VideoGeneratorModal: React.FC<VideoGeneratorModalProps> = ({ isOpen
         ctx.fillText(layer.text, xPos, yPos);
     });
 
-    // Strands watermark — bottom-right of every frame
-    drawStrandsWatermark(ctx, width, height);
+    // Strands watermark — bottom-right (toggleable)
+    if (showWatermarkRef.current) drawStrandsWatermark(ctx, width, height);
 
     ctx.restore();
 
@@ -2327,13 +2745,28 @@ export const VideoGeneratorModal: React.FC<VideoGeneratorModalProps> = ({ isOpen
                 {/* TEXT TAB */}
                 {activeTab === 'text' && (
                     <div className="space-y-4">
-                        <button 
+                        {/* Watermark toggle */}
+                        <div
+                            className={`flex items-center justify-between p-3 rounded-lg border cursor-pointer transition-all ${showWatermark ? 'bg-black/20 border-white/5' : 'bg-black/10 border-white/3 opacity-70'}`}
+                            onClick={() => setShowWatermark(!showWatermark)}
+                        >
+                            <div className="flex items-center gap-2">
+                                <div className={`w-4 h-4 rounded border flex items-center justify-center transition-colors ${showWatermark ? 'bg-accent-500 border-accent-500' : 'bg-zinc-800 border-zinc-600'}`}>
+                                    {showWatermark && <Eye size={10} className="text-white" />}
+                                    {!showWatermark && <EyeOff size={10} className="text-zinc-500" />}
+                                </div>
+                                <span className={`text-xs font-bold ${showWatermark ? 'text-zinc-300' : 'text-zinc-600'}`}>Watermark</span>
+                                <span className="text-[10px] text-zinc-600">STRANDS SOUNDS / strandsnation.xyz</span>
+                            </div>
+                        </div>
+
+                        <button
                             onClick={addTextLayer}
                             className="w-full py-2 bg-accent-600 text-white rounded-lg flex items-center justify-center gap-2 text-xs font-bold hover:bg-accent-700"
                         >
                             <Plus size={14} /> Add Text Layer
                         </button>
-                        
+
                         <div className="space-y-3">
                             {textLayers.map((layer, index) => (
                                 <div key={layer.id} className={`rounded-lg border transition-all ${layer.visible ? 'bg-black/20 border-white/5' : 'bg-black/10 border-white/3 opacity-60'}`}>
@@ -2368,6 +2801,28 @@ export const VideoGeneratorModal: React.FC<VideoGeneratorModalProps> = ({ isOpen
                                                     <label className="text-[10px] text-zinc-500 block mb-1">Y Position</label>
                                                     <input type="range" min="0" max="100" value={layer.y} onChange={(e) => updateTextLayer(layer.id, { y: parseInt(e.target.value) })} className="w-full accent-accent-500 h-1 bg-zinc-700 rounded-lg appearance-none" />
                                                 </div>
+                                            </div>
+                                            {/* Font selector */}
+                                            <div>
+                                                <label className="text-[10px] text-zinc-500 block mb-1">Font</label>
+                                                <select
+                                                    value={layer.font}
+                                                    onChange={(e) => updateTextLayer(layer.id, { font: e.target.value })}
+                                                    className="w-full bg-zinc-800 rounded px-2 py-1.5 text-xs text-white border border-white/5 appearance-none cursor-pointer"
+                                                    style={{ fontFamily: layer.font }}
+                                                >
+                                                    {systemFonts.length > 0 ? (
+                                                        systemFonts.map(f => (
+                                                            <option key={f} value={f} style={{ fontFamily: f }}>{f}</option>
+                                                        ))
+                                                    ) : (
+                                                        <>
+                                                            <option value="Inter">Inter</option>
+                                                            <option value="Arial">Arial</option>
+                                                            <option value="Rajdhani">Rajdhani</option>
+                                                        </>
+                                                    )}
+                                                </select>
                                             </div>
                                             <div className="flex gap-2">
                                                 <div className="flex-1">
@@ -2483,14 +2938,20 @@ export const VideoGeneratorModal: React.FC<VideoGeneratorModalProps> = ({ isOpen
                     <button
                         onClick={startRecording}
                         disabled={ffmpegLoading}
-                        className="w-full h-12 bg-white text-black font-bold rounded-xl flex items-center justify-center gap-2 hover:scale-105 transition-transform disabled:opacity-50"
+                        className={`w-full h-12 font-bold rounded-xl flex items-center justify-center gap-2 hover:scale-105 transition-transform disabled:opacity-50 ${
+                          gpuEncoderAvailable ? 'bg-gradient-to-r from-emerald-500 to-cyan-500 text-black' : 'bg-white text-black'
+                        }`}
                     >
                         <Download size={18} />
-                        Render Video (MP4)
+                        {gpuEncoderAvailable
+                          ? `Render Video (${gpuEncoderInfo?.hardware ? 'GPU' : 'CPU'})`
+                          : 'Render Video (WASM)'}
                     </button>
                  )}
                  <p className="text-[10px] text-zinc-600 text-center">
-                   {ffmpegLoaded ? 'Encoder ready • ' : ''}Do not close this window while rendering.
+                   {gpuEncoderAvailable
+                     ? `${gpuEncoderInfo?.label}${gpuEncoderInfo?.gpu ? ` • ${gpuEncoderInfo.gpu}` : ''} • `
+                     : ffmpegLoaded ? 'WASM encoder ready • ' : ''}Do not close this window while rendering.
                  </p>
             </div>
         </div>
